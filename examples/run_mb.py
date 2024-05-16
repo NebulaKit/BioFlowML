@@ -7,7 +7,7 @@ project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
-from src.exploratory_data_analysis.distributions import check_all_distributions
+from src.feature_analysis.distributions import check_all_distributions
 from src.preprocessing.microbiome_preprocessing import filter_unclassified_taxa, trim_taxa_names
 import src.utils.IO as io
 import pandas as pd

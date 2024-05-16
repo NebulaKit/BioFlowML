@@ -11,9 +11,9 @@ import src.utils.IO as io
 import src.preprocessing.microbiome_data_processing as mbdp
 import src.preprocessing.metadata_processing as metaproc
 import src.utils.logger_setup as log
-import src.exploratory_data_analysis as eda
-from src.exploratory_data_analysis.distributions import check_all_distributions, plot_transformations
-from src.exploratory_data_analysis.correlations import CorrelationAnalyzer
+import src.feature_analysis as eda
+from src.feature_analysis.distributions import check_all_distributions, plot_transformations
+from src.feature_analysis.correlations import CorrelationAnalyzer
 from src.utils.monitoring import timeit
 import src.preprocessing as pp
 import os

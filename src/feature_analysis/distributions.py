@@ -11,7 +11,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import os
-import src.exploratory_data_analysis as eda
+import src.feature_analysis as fa
 from src.BioFlowMLClass import BioFlowMLClass
 from src.utils.monitoring import timeit, log_errors_and_warnings
 from src.utils.logger_setup import get_main_logger, get_logger
@@ -124,7 +124,7 @@ def plot_transformations(obj: BioFlowMLClass, feature_name: str, log_transform_t
     norm_result = {'norm_by_default': 0,
                    'norm_by_log': 0,
                    'norm_by_yeo_johnson': 0}
-    is_numerical = eda.is_numerical(obj.df[feature_name])
+    is_numerical = fa.is_numerical(obj.df[feature_name])
     if not is_numerical:
         return norm_result, is_numerical, feature_name
 
@@ -299,7 +299,7 @@ def check_all_distributions(obj: BioFlowMLClass):
         norm_logger = get_logger(f'distribution_analysis_{obj.out_dir_name}', normality_logger_path)
         
         # Log normalization results
-        norm_logger.debug('-' * 20 + f'EDA RESULTS for {obj.out_dir_name}' + '-' * 20)
+        norm_logger.debug('-' * 20 + f' RESULTS for {obj.out_dir_name}' + '-' * 20)
         norm_logger.debug(f'Initially normal ({len(norm_by_default_list)}/{total_norm_cnt}): {norm_by_default_list}')
         norm_logger.debug(f'Normalized by {log_transform_name[int(log_transform_type)-1]} ({len(norm_by_log_list)}/{total_norm_cnt}): {norm_by_log_list}')
         norm_logger.debug(f'Normalized by Yeo_Johnson ({len(norm_by_yeo_johnson_list)}/{total_norm_cnt}): {norm_by_yeo_johnson_list}')

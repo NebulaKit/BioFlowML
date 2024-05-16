@@ -6,7 +6,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.append(project_root)
 
-from src.wrapper_sdv import generate_synthetic_data, generate_merged_synthetic_data
+from src.sdv_utils import generate_synthetic_data, generate_merged_synthetic_data
 from src.BioFlowMLClass import BioFlowMLClass
 from src.utils import IO
 import pandas as pd

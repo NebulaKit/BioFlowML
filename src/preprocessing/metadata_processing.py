@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import os
 from src.BioFlowMLClass import BioFlowMLClass
-import src.exploratory_data_analysis as eda
+import src.feature_analysis as fa
 from src.utils.logger_setup import get_main_logger
 from src.utils.monitoring import timeit, log_errors_and_warnings
 from src.preprocessing import NumericalImputer, CategoricalImputer
@@ -370,7 +370,7 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     
     
     # 2. Encode categorical values
-    categorical_features_info = eda.categorical_features_info(obj.df, features_values_to_drop)
+    categorical_features_info = fa.categorical_features_info(obj.df, features_values_to_drop)
     
      # Set pandas display options to ensure full display of values
     pd.set_option('display.max_colwidth', None)
