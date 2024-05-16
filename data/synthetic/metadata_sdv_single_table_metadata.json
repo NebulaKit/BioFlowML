@@ -1,0 +1,480 @@
+{
+    "primary_key": "sample_id",
+    "columns": {
+        "sample_id": {
+            "sdtype": "id"
+        },
+        "subject_group": {
+            "sdtype": "categorical"
+        },
+        "height_cm": {
+            "sdtype": "numerical"
+        },
+        "bmi": {
+            "sdtype": "numerical"
+        },
+        "seq_batch": {
+            "sdtype": "categorical"
+        },
+        "denoised_reads": {
+            "sdtype": "numerical"
+        },
+        "sex": {
+            "sdtype": "categorical"
+        },
+        "age_y": {
+            "sdtype": "numerical"
+        },
+        "ethnicity": {
+            "sdtype": "categorical"
+        },
+        "average_h_sleep": {
+            "sdtype": "numerical"
+        },
+        "have_animals_or_pets": {
+            "sdtype": "categorical"
+        },
+        "high_blood_pressure_ever": {
+            "sdtype": "categorical"
+        },
+        "daily_energy_kcal": {
+            "sdtype": "numerical"
+        },
+        "daily_protein_g": {
+            "sdtype": "numerical"
+        },
+        "daily_carbs_g": {
+            "sdtype": "numerical"
+        },
+        "daily_water_g": {
+            "sdtype": "numerical"
+        },
+        "daily_fiber_g": {
+            "sdtype": "numerical"
+        },
+        "daily_sodium_mg": {
+            "sdtype": "numerical"
+        },
+        "daily_calcium_mg": {
+            "sdtype": "numerical"
+        },
+        "daily_magnesium_mg": {
+            "sdtype": "numerical"
+        },
+        "daily_vit_c_mg": {
+            "sdtype": "numerical"
+        },
+        "makaroni_pasta_variti": {
+            "sdtype": "numerical"
+        },
+        "pupinu_makaroni_pagatavoti": {
+            "sdtype": "numerical"
+        },
+        "kuskuss_pagatavots": {
+            "sdtype": "categorical"
+        },
+        "risi_pagatavoti": {
+            "sdtype": "numerical"
+        },
+        "griki_pagatavoti": {
+            "sdtype": "numerical"
+        },
+        "kvinoja_pagatavota": {
+            "sdtype": "numerical"
+        },
+        "brokastu_parslas": {
+            "sdtype": "numerical"
+        },
+        "musli": {
+            "sdtype": "numerical"
+        },
+        "auzu_parslu_putra_ar_pienu": {
+            "sdtype": "numerical"
+        },
+        "risu_biezputra": {
+            "sdtype": "numerical"
+        },
+        "popkorns": {
+            "sdtype": "numerical"
+        },
+        "grauzdini": {
+            "sdtype": "numerical"
+        },
+        "smalkmaizites": {
+            "sdtype": "numerical"
+        },
+        "smilsu_miklas_cepumi": {
+            "sdtype": "numerical"
+        },
+        "vafeles_ar_pildijumu": {
+            "sdtype": "numerical"
+        },
+        "piparkukas": {
+            "sdtype": "numerical"
+        },
+        "krema_kukas": {
+            "sdtype": "numerical"
+        },
+        "keksini": {
+            "sdtype": "numerical"
+        },
+        "platsmaize_abolu_rabarberu": {
+            "sdtype": "numerical"
+        },
+        "tejas_kuka_bezglutena": {
+            "sdtype": "numerical"
+        },
+        "baltmaize_kviesu": {
+            "sdtype": "numerical"
+        },
+        "graudu_maize": {
+            "sdtype": "numerical"
+        },
+        "saldskabmaize": {
+            "sdtype": "numerical"
+        },
+        "rudzu_rupjmaize": {
+            "sdtype": "numerical"
+        },
+        "rupjmaize_ar_piedevam_augliem_riekstiem_u_c": {
+            "sdtype": "numerical"
+        },
+        "baltmaize_bezglutena": {
+            "sdtype": "numerical"
+        },
+        "liellopa_gala_pagatavota": {
+            "sdtype": "numerical"
+        },
+        "jera_gala_pagatavota": {
+            "sdtype": "numerical"
+        },
+        "majputnu_gala_varita_sauteta": {
+            "sdtype": "numerical"
+        },
+        "cisini": {
+            "sdtype": "numerical"
+        },
+        "galas_konservi": {
+            "sdtype": "numerical"
+        },
+        "aknas": {
+            "sdtype": "numerical"
+        },
+        "aknu_pastete": {
+            "sdtype": "numerical"
+        },
+        "cits_galas_subproduktu_ediens": {
+            "sdtype": "numerical"
+        },
+        "hotdogs": {
+            "sdtype": "numerical"
+        },
+        "hamburgers_atras_apkalposanas_restorana": {
+            "sdtype": "numerical"
+        },
+        "hamburgers": {
+            "sdtype": "numerical"
+        },
+        "kebabs": {
+            "sdtype": "numerical"
+        },
+        "pica_0": {
+            "sdtype": "numerical"
+        },
+        "pelmeni": {
+            "sdtype": "numerical"
+        },
+        "sausas_zupas": {
+            "sdtype": "numerical"
+        },
+        "juras_zivis_pagatavotas": {
+            "sdtype": "numerical"
+        },
+        "juras_kaposti": {
+            "sdtype": "numerical"
+        },
+        "juraszalu_lapa_nori": {
+            "sdtype": "numerical"
+        },
+        "sprotes": {
+            "sdtype": "numerical"
+        },
+        "zivju_konservi": {
+            "sdtype": "numerical"
+        },
+        "zivju_pirkstini_1": {
+            "sdtype": "numerical"
+        },
+        "tradicionali_tumsi_kupinatas_zivis_laukos_vai_ar_malku": {
+            "sdtype": "numerical"
+        },
+        "vistu_olas_svaigas_pagatavotas": {
+            "sdtype": "numerical"
+        },
+        "paipalu_olas_varitas_ceptas": {
+            "sdtype": "numerical"
+        },
+        "piens_2_percent": {
+            "sdtype": "numerical"
+        },
+        "kefirs": {
+            "sdtype": "numerical"
+        },
+        "paninas": {
+            "sdtype": "numerical"
+        },
+        "tirkultura": {
+            "sdtype": "numerical"
+        },
+        "jogurta_dzeriens_ar_palielinatu_olbaltumvielu_saturu_un_ogu_auglu_piedevu": {
+            "sdtype": "numerical"
+        },
+        "jogurts_bez_piedevam": {
+            "sdtype": "numerical"
+        },
+        "jogurts_ar_piedevam": {
+            "sdtype": "numerical"
+        },
+        "krejums": {
+            "sdtype": "numerical"
+        },
+        "biezpiens": {
+            "sdtype": "numerical"
+        },
+        "biezpiena_sierini": {
+            "sdtype": "numerical"
+        },
+        "siers_0": {
+            "sdtype": "numerical"
+        },
+        "augu_piens_govs_piena_aizstajejs": {
+            "sdtype": "numerical"
+        },
+        "augu_jogurts_piena_jogurta_aizstajejs": {
+            "sdtype": "numerical"
+        },
+        "siers_veganisks": {
+            "sdtype": "numerical"
+        },
+        "margarins": {
+            "sdtype": "numerical"
+        },
+        "sviests": {
+            "sdtype": "numerical"
+        },
+        "citi_dzivnieku_tauki": {
+            "sdtype": "numerical"
+        },
+        "majoneze": {
+            "sdtype": "numerical"
+        },
+        "olivella": {
+            "sdtype": "numerical"
+        },
+        "kokosriekstu_sviests_ella": {
+            "sdtype": "numerical"
+        },
+        "augu_ella": {
+            "sdtype": "numerical"
+        },
+        "sojas_merce": {
+            "sdtype": "numerical"
+        },
+        "darzeni_svaigi": {
+            "sdtype": "numerical"
+        },
+        "augli_svaigi": {
+            "sdtype": "numerical"
+        },
+        "ogas_svaigas": {
+            "sdtype": "numerical"
+        },
+        "zaveti_augli": {
+            "sdtype": "numerical"
+        },
+        "senes_0": {
+            "sdtype": "numerical"
+        },
+        "meza_senes": {
+            "sdtype": "numerical"
+        },
+        "konservetas_senes": {
+            "sdtype": "numerical"
+        },
+        "darzenu_zupa_jaukti_darzeni": {
+            "sdtype": "numerical"
+        },
+        "darzenu_sautejums_dazadi_darzeni": {
+            "sdtype": "numerical"
+        },
+        "pelekie_zirni_variti": {
+            "sdtype": "numerical"
+        },
+        "lecas_nogatavojusas_pagatavotas": {
+            "sdtype": "numerical"
+        },
+        "soja_sojas_produkti": {
+            "sdtype": "numerical"
+        },
+        "rieksti": {
+            "sdtype": "numerical"
+        },
+        "zemesrieksti_grauzdeti_saliti": {
+            "sdtype": "numerical"
+        },
+        "zavetu_auglu_un_riekstu_maisijums": {
+            "sdtype": "numerical"
+        },
+        "zemesriekstu_sviests": {
+            "sdtype": "numerical"
+        },
+        "seklas": {
+            "sdtype": "numerical"
+        },
+        "variti_kartupeli": {
+            "sdtype": "numerical"
+        },
+        "cepti_kartupeli_4": {
+            "sdtype": "numerical"
+        },
+        "fri_kartupeli": {
+            "sdtype": "numerical"
+        },
+        "kartupelu_cipsi": {
+            "sdtype": "numerical"
+        },
+        "kukuruzas_cipsi": {
+            "sdtype": "numerical"
+        },
+        "pupinu_kafija_dzeriens": {
+            "sdtype": "numerical"
+        },
+        "skistosa_kafija_dzeriens": {
+            "sdtype": "numerical"
+        },
+        "kafijas_aizstajeji_cigorinu_miezu_utt_dzeriens": {
+            "sdtype": "numerical"
+        },
+        "teja_dzeriens": {
+            "sdtype": "numerical"
+        },
+        "kakao_sokolades_dzeriens": {
+            "sdtype": "numerical"
+        },
+        "konfektes_un_saldumi_sokolades_karameles_u_c": {
+            "sdtype": "numerical"
+        },
+        "udensvada_udens": {
+            "sdtype": "numerical"
+        },
+        "saldinatie_dzerieni_ar_kofeinu_pepsi_cola": {
+            "sdtype": "numerical"
+        },
+        "energijas_dzerieni": {
+            "sdtype": "numerical"
+        },
+        "saldinatie_dzerieni_fanta_limpopo_u_c": {
+            "sdtype": "numerical"
+        },
+        "bezkaloriju_gazets_kofeinu_satuross_dzeriens_coca_cola_zero": {
+            "sdtype": "numerical"
+        },
+        "kvass_iesala_dzerieni": {
+            "sdtype": "numerical"
+        },
+        "cukura_aizvietotaji": {
+            "sdtype": "numerical"
+        },
+        "cukurs": {
+            "sdtype": "numerical"
+        },
+        "medus": {
+            "sdtype": "numerical"
+        },
+        "zivju_ella_kapsulas_uzt_bag": {
+            "sdtype": "numerical"
+        },
+        "multivitamini": {
+            "sdtype": "numerical"
+        },
+        "dzelzs_preparats_uzt_bag": {
+            "sdtype": "numerical"
+        },
+        "kalcijs_uzt_bag": {
+            "sdtype": "numerical"
+        },
+        "c_vitamins_uzt_bag": {
+            "sdtype": "numerical"
+        },
+        "magnijs_uzt_bag": {
+            "sdtype": "numerical"
+        },
+        "b_grupas_vitamini_uzt_bag": {
+            "sdtype": "numerical"
+        },
+        "probiotisko_bakteriju_preparats": {
+            "sdtype": "numerical"
+        },
+        "skiedrvielu_preparats_uzt_bag": {
+            "sdtype": "numerical"
+        },
+        "maltisu_aizstajeji_uzturvielu_kokteili": {
+            "sdtype": "numerical"
+        },
+        "wemwbs_score": {
+            "sdtype": "numerical"
+        },
+        "bristol_score": {
+            "sdtype": "numerical"
+        },
+        "energijas_atbilst_gr_0": {
+            "sdtype": "categorical"
+        },
+        "miegs_pn_h": {
+            "sdtype": "numerical"
+        },
+        "avg_screen_time_h": {
+            "sdtype": "numerical"
+        },
+        "vidukla_gurnu_att": {
+            "sdtype": "numerical"
+        },
+        "darbs_nakti_grupa": {
+            "sdtype": "categorical"
+        },
+        "izglitiba_grupas": {
+            "sdtype": "categorical"
+        },
+        "daily_alc_units_beer": {
+            "sdtype": "numerical"
+        },
+        "daily_alc_units_strong_beer": {
+            "sdtype": "numerical"
+        },
+        "daily_alc_units_white_wine": {
+            "sdtype": "numerical"
+        },
+        "daily_alc_units_sparkling_wine": {
+            "sdtype": "numerical"
+        },
+        "daily_alc_units_strong_spirits": {
+            "sdtype": "numerical"
+        },
+        "daily_alc_units_total": {
+            "sdtype": "numerical"
+        },
+        "vit_d_sufficiency": {
+            "sdtype": "categorical"
+        },
+        "fiber_sufficiency": {
+            "sdtype": "categorical"
+        },
+        "rel_kcal_carbs": {
+            "sdtype": "numerical"
+        },
+        "rel_kcal_protein": {
+            "sdtype": "numerical"
+        }
+    },
+    "METADATA_SPEC_VERSION": "SINGLE_TABLE_V1"
+}

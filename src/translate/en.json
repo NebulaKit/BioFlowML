@@ -1,0 +1,32 @@
+{
+    "histogram_labels": {
+        "y_axis": "Frequency",
+        "skewness": "Skewness",
+        "kurtosis": "Kurtosis",
+        "shapiro_p_value": "Shapiro-Wilk p-value",
+        "lilliefors_p_value": "Lilliefors p-value",
+        "anderson_statistic": "Anderson-Darling stat.",
+        "anderson_critical_value": "crit. value",
+        "normal_distribution": "Normal distribution",
+        "yes": "Yes",
+        "no": "No"
+    },
+    "boxplot_labels": {
+        "y_axis": "Value"
+    },
+    "correlation_heatmap": {
+        "title": "Correlation heatmap with target column"
+    },
+    "result_labels": {
+        "accuracy": "Accuracy",
+        "precision": "Precision",
+        "recall": "Recall"
+    },
+    "cohort": {
+        "Liver_disease": "Liver disease",
+        "Control": "Control",
+        "Vegan": "Vegan",
+        "Celiac": "Celiac",
+        "Vegetarian": "Vegetarian"
+    }
+  }

@@ -1,0 +1,32 @@
+{
+    "histogram_labels": {
+        "y_axis": "Biežums",
+        "skewness": "Asimetrija",
+        "kurtosis": "Ekscess",
+        "shapiro_p_value": "Shapiro-Wilk p-vērtība",
+        "lilliefors_p_value": "Lilliefors p-vērtība",
+        "anderson_statistic": "Anderson-Darling stat.",
+        "anderson_critical_value": "krit. vērtība",
+        "normal_distribution": "Normāls sadalījums",
+        "yes": "Jā",
+        "no": "Nē"
+    },
+    "boxplot_labels": {
+        "y_axis": "Vērtība"
+    },
+    "correlation_heatmap": {
+        "title": "Korelāciju siltuma karte ar mērķa pazīmi"
+    },
+    "result_labels": {
+        "accuracy": "Akurātums",
+        "precision": "Precizitāte",
+        "recall": "Pārklājums"
+    },
+    "cohort": {
+        "Liver_disease": "Aknu slimnieks",
+        "Control": "Kontroles grupa",
+        "Vegan": "Vegāns",
+        "Celiac": "Celiakijas slimnieks",
+        "Vegetarian": "Veģetārietis"
+    }
+  }
