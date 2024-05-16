@@ -23,3 +23,21 @@ python -m venv env
 .\env\Scripts\activate
 # On macOS/Linux
 source env/bin/activate
+```
+
+### Installing Dependencies
+
+```bash
+# Install all the necessary dependencies
+pip install -r requirements.txt
+```
+This will install all the necessary dependencies for the project.
+
+### Running the Project
+
+Now that you have set up the virtual environment and installed the dependencies, you're ready to run the project.
+[Add instructions on how to run your project here.]
+
+### License
+
+This project is licensed under the [License Name] - see the LICENSE file for details.
