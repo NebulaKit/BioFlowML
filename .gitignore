@@ -45,6 +45,9 @@ docker-compose.yml
 # Ignore project-specific directories
 data/raw/*
 data/test/*
+data/processed/correlations
+data/processed/distributions
+src/preprocessing/pipelines
 
 # Ignore log files
 *.log
