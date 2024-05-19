@@ -1,18 +1,17 @@
-import src.utils.logger_setup as log
+from src.utils.logger_setup import get_main_logger
 import json
 import os
 
 
-
 def load_translations(language):
     
-    logger = log.get_logger('main_log')
     tr_path = os.path.join(os.path.dirname(__file__), f'{language}.json')
     try:
         with open(tr_path, 'r', encoding='utf-8') as f:
             translations = json.load(f)
         return translations
     except FileNotFoundError:
+        logger = get_main_logger()
         logger.warning(f"Translation file for '{language}' not found.")
         return None
 

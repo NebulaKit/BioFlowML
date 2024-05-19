@@ -1,6 +1,6 @@
-from src.feature_analysis import get_categorical_features_info, get_categorical_features
+from src.feature_analysis import get_categorical_features_info, get_categorical_features, get_binary_features
 from src.utils.monitoring import timeit, log_errors_and_warnings
-from src.utils.IO import get_project_root_dir, get_absolute_path
+from src.utils.IO import get_absolute_path
 from src.utils.logger_setup import get_main_logger
 from src.BioFlowMLClass import BioFlowMLClass
 from sklearn.base import BaseEstimator, TransformerMixin

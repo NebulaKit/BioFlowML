@@ -1,4 +1,4 @@
-import src.utils.logger_setup as log
+from src.utils.logger_setup import get_main_logger
 import os
 
 
@@ -29,7 +29,7 @@ def get_absolute_path(relative_path, create_dir = False):
 
         return abs_path
     except Exception as e:
-        logger = log.get_logger('main_log')
+        logger = get_main_logger()
         logger.error(f"Error occurred while getting data file path: {e}")
         return None
 
@@ -45,7 +45,7 @@ def create_directory(path):
 
     # Log the creation of the output folder
     if not os.path.exists(path):
-        logger = log.get_logger('main_log')
+        logger = get_main_logger()
         logger.debug(f'Output folder created at: {path}')
 
 
