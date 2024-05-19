@@ -1,3 +1,7 @@
+"""
+Module for microbiome specific data preparation methods.
+"""
+
 from src.BioFlowMLClass import BioFlowMLClass
 from src.utils.monitoring import log_errors_and_warnings
 from src.utils.logger_setup import get_main_logger
@@ -296,6 +300,7 @@ def trim_taxa_names(obj: BioFlowMLClass):
         obj.log_obj()
     return obj
 
+@log_errors_and_warnings
 def aggregate_taxa_by_level(obj: BioFlowMLClass, level, aggregate_unclassified=True):
     """
     Aggregates taxa in the dataframe based on the specified taxonomic level.

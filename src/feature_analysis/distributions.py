@@ -2,6 +2,14 @@
 Module for analyzing and visualizing data distributions for the original and transformed data.
 """
 
+from src.utils.monitoring import timeit, log_errors_and_warnings
+from src.utils.logger_setup import get_main_logger, get_logger
+from src.BioFlowMLClass import BioFlowMLClass
+import src.feature_analysis as fa
+import src.utils.microbiome as mb
+import src.utils.IO as io
+from src.utils.IOHandler import IOHandler
+import src.translate as tr
 from scipy.stats import shapiro, anderson, skew, kurtosis
 from statsmodels.stats.diagnostic import lilliefors
 from sklearn.preprocessing import power_transform
@@ -11,14 +19,6 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import os
-import src.feature_analysis as fa
-from src.BioFlowMLClass import BioFlowMLClass
-from src.utils.monitoring import timeit, log_errors_and_warnings
-from src.utils.logger_setup import get_main_logger, get_logger
-import src.utils.microbiome as mb
-import src.utils.IO as io
-import src.translate as tr
-
 
 
 @log_errors_and_warnings
@@ -64,7 +64,7 @@ def check_normality(data: pd.core.series.Series, translations: dict = {}, alpha:
         temp_str = (
             f'{tr.translate("histogram_labels.anderson_statistic", translations)}: '
             f'{anderson_result.statistic:.3f} '
-            f'(α=5% {tr.translate("histogram_labels.anderson_critical_value", translations)}: '
+            f'(α=0.05, {tr.translate("histogram_labels.anderson_critical_value", translations)}='
             f'{anderson_result.critical_values[2]:.3f})'
         )
         test_result_str += f'{temp_str}\n'
@@ -84,7 +84,6 @@ def check_normality(data: pd.core.series.Series, translations: dict = {}, alpha:
     
     # Return True if at least two tests do not reject the null hypothesis
     return norm_not_rejected, test_values_dict, test_result_str
-
 
 @log_errors_and_warnings
 def plot_transformations(obj: BioFlowMLClass, feature_name: str, log_transform_type: int = 1, color: str = '#0d2980'):
@@ -210,7 +209,7 @@ def plot_transformations(obj: BioFlowMLClass, feature_name: str, log_transform_t
     
     # Save output figure
     output_dir = 'Normal_features' if normality_achieved else 'Non_Normal_Features'
-    out_dir_name = io.get_absolute_path(f'data/processed/distributions/{obj.out_dir_name}/{output_dir}', create_dir=True)
+    out_dir_name = io.get_absolute_path(f'../data/processed/distributions/{obj.out_dir_name}/{output_dir}', create_dir=True)
     index = obj.df.columns.get_loc(feature_name)
     out_file_path = os.path.join(out_dir_name, f'{index}_{mb.trim_id(feature_name)}.png')
     plt.savefig(out_file_path, dpi=250)
@@ -221,7 +220,6 @@ def plot_transformations(obj: BioFlowMLClass, feature_name: str, log_transform_t
     logger.debug(f'{feature_name} - NORMALIZED: {is_normal}')
     
     return norm_result, is_numerical, feature_name
-
 
 @timeit
 @log_errors_and_warnings
@@ -237,11 +235,18 @@ def check_all_distributions(obj: BioFlowMLClass):
         check_all_distributions(obj)
         ```
     """
+    # Check if the directory exists
+    print(f'project_root_dir: {IOHandler.get_project_root_dir()}')
+    if os.path.isdir(f'{IOHandler.get_project_root_dir()}/data/processed/distributions/{obj.out_dir_name}'):
+        user_input = input(f'Directory for {obj.out_dir_name} distributions detected. Skip distribution analysis (y/n)? ')
+        if user_input.lower() == 'y':
+            return
+            
     # Main logger
     logger = get_main_logger()
     logger.debug('-' * 20 + f' STARTING DISTRIBUTION ANALYSIS FOR {obj.out_dir_name} FEATURES ' + '-' * 20)
     
-    # Logarithmic transformation options
+    # Prompt the user to choose a logarithmic transformation from given options
     log_transform_name = ['ln(1 + x)', 'log2(1 + x)', 'log10(1 + x)']
     log_transform_type = -1
     while log_transform_type not in ['1','2','3']:
@@ -294,7 +299,7 @@ def check_all_distributions(obj: BioFlowMLClass):
     if total_norm_cnt > 0:
         
         # Initialize normalization statistics logger
-        out_dir_path = io.get_absolute_path(f'data/processed/distributions/{obj.out_dir_name}/Normal_features')
+        out_dir_path = io.get_absolute_path(f'../data/processed/distributions/{obj.out_dir_name}/Normal_features')
         normality_logger_path = os.path.join(out_dir_path,'logfile.log')
         norm_logger = get_logger(f'distribution_analysis_{obj.out_dir_name}', normality_logger_path)
         

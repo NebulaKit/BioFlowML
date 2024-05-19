@@ -6,7 +6,7 @@
         "shapiro_p_value": "Shapiro-Wilk p-value",
         "lilliefors_p_value": "Lilliefors p-value",
         "anderson_statistic": "Anderson-Darling stat.",
-        "anderson_critical_value": "crit. value",
+        "anderson_critical_value": "CV",
         "normal_distribution": "Normal distribution",
         "yes": "Yes",
         "no": "No"

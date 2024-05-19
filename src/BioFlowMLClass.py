@@ -70,7 +70,7 @@ class BioFlowMLClass:
         self.df = self.df.drop(columns=self.drop_features)
         
         # Check if provided lanuage is available in resources
-        lang_json_files = IOHandler.get_json_files(f'{IOHandler.get_project_root_dir()}/translate')
+        lang_json_files = IOHandler.get_json_files(f'{IOHandler.get_project_root_dir()}/src/translate')
         supported_langs = [os.path.splitext(file_name)[0] for file_name in lang_json_files]
         if lang not in supported_langs:
             raise ValueError(f"Unsupported language selected! Possible options: {supported_langs}")

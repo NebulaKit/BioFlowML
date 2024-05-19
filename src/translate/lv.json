@@ -6,7 +6,7 @@
         "shapiro_p_value": "Shapiro-Wilk p-vērtība",
         "lilliefors_p_value": "Lilliefors p-vērtība",
         "anderson_statistic": "Anderson-Darling stat.",
-        "anderson_critical_value": "krit. vērtība",
+        "anderson_critical_value": "KV",
         "normal_distribution": "Normāls sadalījums",
         "yes": "Jā",
         "no": "Nē"

@@ -106,7 +106,6 @@ def log_descriptive_stats(path: str, delimiter=',', id_field: str = None):
     out_str = '\n' + '-' * 25 + f'Descriptive statistics' + '-' * 25 + '\n'
     logger.info(out_str + json_str)
 
-
 def is_numerical(data: pd.core.series.Series) -> bool:
     """
     Check if the data in a pandas Series is quantitative (numerical).
@@ -123,7 +122,7 @@ def is_numerical(data: pd.core.series.Series) -> bool:
     else:
         return True
 
-def categorical_features(data: pd.DataFrame) -> list:
+def get_categorical_features(data: pd.DataFrame) -> list:
     """
     Extract the names of categorical features from a pandas DataFrame.
 
@@ -139,7 +138,7 @@ def categorical_features(data: pd.DataFrame) -> list:
             categorical_features.append(column)
     return categorical_features
 
-def categorical_features_info(data: pd.DataFrame, feature_values_to_drop=None) -> pd.DataFrame:
+def get_categorical_features_info(data: pd.DataFrame, feature_values_to_drop=None) -> pd.DataFrame:
     """
     Extract the names of categorical features, their unique value counts, and the actual unique values 
     from a pandas DataFrame.
@@ -162,3 +161,19 @@ def categorical_features_info(data: pd.DataFrame, feature_values_to_drop=None) -
             unique_values_count = len(unique_values)
             feature_info.append([column, unique_values_count, unique_values])
     return pd.DataFrame(feature_info, columns=['Feature', 'Unique Values Count', 'Unique Values'])
+
+def get_binary_features(df: pd.DataFrame):
+    """
+    Identify binary features (columns) in a DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): Input DataFrame.
+
+    Returns:
+    - binary_features (list): List of column names representing binary features.
+
+    Notes:
+    - This method identifies binary features in a DataFrame by checking if each column has exactly two unique values, 0 and 1.
+    - Only columns with exactly two unique values of 0 and 1 are considered binary features.
+    """
+    return [col for col in df.columns if df[col].nunique() == 2 and set(df[col].unique()) == {0, 1}]

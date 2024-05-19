@@ -54,5 +54,5 @@ class IOHandler:
     
     @staticmethod
     def get_project_root_dir():
-        return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..'))
+        return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'../..'))
 
