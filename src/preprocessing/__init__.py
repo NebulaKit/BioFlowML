@@ -8,6 +8,51 @@ import numpy as np
 import pandas as pd
 
 
+def has_non_unique_columns(df: pd.DataFrame):
+    """
+    Checks if a DataFrame has any non-unique (duplicate) column names.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to check for non-unique columns.
+
+    Returns:
+        bool: Returns True if there are non-unique columns in the DataFrame, otherwise returns False.
+    """
+    return len(set(df.columns)) != len(df.columns)
+
+
+def get_non_unique_columns(df: pd.DataFrame):
+    """
+    Retrieves a list of non-unique (duplicate) column names from a DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to check for non-unique columns.
+
+    Returns:
+        list: A list of column names that are duplicated in the DataFrame.
+    """
+    non_unique_columns = [col for col in df.columns if df.columns.tolist().count(col) > 1]
+    return non_unique_columns
+
+def sum_duplicated_columns(df: pd.DataFrame):
+    """
+    Sums the values of duplicated columns in a DataFrame and retains only one column with the original name,
+    discarding the other duplicates.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame in which to sum and consolidate duplicated columns.
+
+    Returns:
+        pd.DataFrame: The modified DataFrame with summed duplicated columns and only one column retained for each original name.
+    """
+    for col in df.columns:
+        if df.columns.tolist().count(col) > 1:  # Check if column is duplicated
+            duplicated_columns = [col for col in df.columns if df.columns.tolist().count(col) > 1]
+            new_col_name = col
+            df[new_col_name] = df[duplicated_columns].sum(axis=1)  # Sum the rows of duplicated columns
+            df.drop(columns=duplicated_columns[1:], inplace=True)  # Drop duplicate columns except the first occurrence
+    return df
+
 
 def get_binary_features(df: pd.DataFrame):
     """

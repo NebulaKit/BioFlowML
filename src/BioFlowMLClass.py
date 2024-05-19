@@ -14,9 +14,11 @@ class BioFlowMLClass:
         df (pd.DataFrame): The input DataFrame containing the data for analysis.
         label_feature (str): The name of the column in df representing the label feature.
         out_dir_name (str): The name of the output directory for saving results.
-        exclude_features (list, optional): A list of features to be excluded from analysis.
-            Defaults to None.
-        control_feature (str, optional): The name of the control feature for cases vs. controls analysis.
+        exclude_features (list, optional): A list of features to be excluded from analysis 
+            (e.g. id columns) but not dropped from the DataFrame. Defaults to None.
+        control_label (str, optional): The name of the control value (from the label_feature values)
+            for cases vs. controls analysis. Defaults to None.
+        drop_features (list, optional): A lsit of features to be removed from the pandas DataFrame.
             Defaults to None.
         lang (str, optional): The language used in figures and plots. Defaults to 'en'.
     
@@ -26,9 +28,10 @@ class BioFlowMLClass:
             Initializes a BioFlowML object with the provided parameters.
             Raises ValueError if input parameters are invalid.
         to_dict(): Serialize the BioFlowML object into a dictionary for logging purposes.
+        # TODO: extent the documentation
     """
     @log_errors_and_warnings
-    def __init__(self, df: pd.DataFrame, out_dir_name: str, label_feature: str=None, exclude_features: list=None, control_label: str=None, lang: str='en'):
+    def __init__(self, df: pd.DataFrame, out_dir_name: str, label_feature: str=None, exclude_features: list=None, control_label: str=None, drop_features: list=None, lang: str='en'):
         # Check if df is a pandas DataFrame
         if not isinstance(df, pd.DataFrame):
             raise ValueError("The 'df' parameter must be a pandas DataFrame!")
@@ -57,6 +60,14 @@ class BioFlowMLClass:
             if control_label not in df[self.label_feature].values:
                 raise ValueError(f"The label feature '{label_feature}' does not contain the provided control label '{control_label}'!")
         self.control_label = control_label
+        
+        # Check if provided features to be dropped are contained within the df
+        if drop_features:
+            missing_drop_features = [col for col in drop_features if col not in self.df.columns]
+            if missing_drop_features:
+                raise ValueError(f"The following features to be dropped are not present in the DataFrame: {', '.join(missing_exclude_features)}.")
+        self.drop_features = drop_features if drop_features else []
+        self.df = self.df.drop(columns=self.drop_features)
         
         # Check if provided lanuage is available in resources
         lang_json_files = IOHandler.get_json_files(f'{IOHandler.get_project_root_dir()}/translate')
