@@ -269,8 +269,6 @@ def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False)
             # Extend the list of columns to drop
             drop_columns.extend(list(selected_columns))
 
-
-
     # Drop the original columns that were aggregated
     obj.df = obj.df.drop(columns=drop_columns)
     
