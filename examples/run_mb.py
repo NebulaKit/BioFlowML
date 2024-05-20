@@ -8,7 +8,7 @@ sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_all_distributions
-from src.preprocessing.microbiome_preprocessing import filter_unclassified_taxa, trim_taxa_names
+from src.preprocessing.microbiome_preprocessing import trim_taxa_names, merge_with_metadata, aggregate_taxa_by_level
 import src.utils.IO as io
 import pandas as pd
 
@@ -17,25 +17,41 @@ def main():
     
     io.reset_logfile()
     
-    # Create and initialize BioFlowML class instance
-    relative_data_path = 'data/synthetic/microbiome_synthetic.csv'
-    out_dir_name = relative_data_path.split('/')[-1].split('.')[0] # same as dataset name
-    df = pd.read_csv(relative_data_path)
-    obj = BioFlowMLClass(df,
-                         out_dir_name = out_dir_name,
-                         label_feature = 'subject_group',
-                         exclude_features = ['sample_id'],
-                         control_label = 'Control',
-                         lang = 'lv')
+    # Create and initialize BioFlowML class instance for the microbiome data
+    df_mb = pd.read_csv('data/synthetic/microbiome.csv')
+    id_column = 'sample_id'
+    obj_mb = BioFlowMLClass(df_mb,
+                            out_dir_name = 'microbiome', # same as dataset name
+                            exclude_features = [id_column],
+                            lang = 'lv')
     
-    # Filter taxa unclassified to genus level
-    filter_unclassified_taxa(obj, 'g')
+    # Create and initialize BioFlowML class instance for the metadata (to map label feature to microbiome data)
+    df_meta = pd.read_csv('data/synthetic/metadata.csv')
+    label_feature = 'subject_group'
+    control_label = 'Control'
+    obj_meta = BioFlowMLClass(df_meta,
+                              out_dir_name = 'metadata', # same as dataset name
+                              label_feature = label_feature,
+                              exclude_features = [id_column],
+                              control_label = control_label,
+                              lang = 'lv')
+    
+    # Add label feature to the microbiome feature matrix
+    obj_mb = merge_with_metadata(obj_mb, obj_meta, [label_feature])
+    obj_mb.set_label_feature(label_feature, control_label)
+    
+    # TODO: need tp think of how to stop workflow from further execution if previous task fails
+    # Aggregate species data to specific taxonomic level
+    level_indicators = ['d', 'p', 'c', 'o', 'f', 'g', 's']
+    level = 'd'
+    aggregate_taxa_by_level(obj_mb, level)
     
     # Trim the lengthy taxa names for better vizualization
-    trim_taxa_names(obj)
-
+    trim_taxa_names(obj_mb)
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_level.csv', index=False)
+ 
     # Chech data distributions for all microbial features
-    #check_all_distributions(obj)
+    check_all_distributions(obj_mb)
     
     # Preprocess non-numerical features
     

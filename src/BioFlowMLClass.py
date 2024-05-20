@@ -85,8 +85,21 @@ class BioFlowMLClass:
     # Setter methods for internal properties
     def set_encoded_features(self, key, value):
         self._encoded_features[key] = value
-
-
+        
+    def set_label_feature(self, label_feature, control_label=None):
+        
+        if label_feature not in self.df.columns:
+                raise ValueError(f"The provided label feature is not present in the DataFrame!")
+        
+        if control_label:
+            if control_label not in self.df[label_feature].values:
+                raise ValueError(f"The label feature '{label_feature}' does not contain the provided control label '{control_label}'!")
+            
+        self.label_feature = label_feature
+        
+        if control_label:
+            self.control_label = control_label
+    
     # Getter methods for internal properties
     def get_encoded_features(self):
         return self._encoded_features

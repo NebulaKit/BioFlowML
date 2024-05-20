@@ -92,7 +92,7 @@ def transpose_otu_table(obj: BioFlowMLClass, samples_id=None, sort_samples_by_id
     return obj
 
 @log_errors_and_warnings
-def merge_with_metadata(obj: BioFlowMLClass, obj_meta: pd.DataFrame, features_to_add, id_column = 'sample_id'):
+def merge_with_metadata(obj: BioFlowMLClass, obj_meta: pd.DataFrame, features_to_add: list, id_column = 'sample_id'):
     """
     Merge the main data DataFrame with a metadata DataFrame based on a common identifier column.
 
@@ -134,53 +134,29 @@ def merge_with_metadata(obj: BioFlowMLClass, obj_meta: pd.DataFrame, features_to
     return obj
 
 @log_errors_and_warnings
-def filter_unclassified_taxa(obj: BioFlowMLClass, level, aggregate=False):
-    """
-    Filter unclassified taxa from a taxonomic profile DataFrame at the specified taxonomic level.
-
-    Parameters:
-        obj (BioFlowMLClass): An instance of the BioFlowMLClass containing a DataFrame with taxonomic profile data.
-        level (str): The taxonomic level to filter unclassified taxa. Should be one of 'd' (domain), 'p' (phylum),
-                     'c' (class), 'o' (order), 'f' (family), 'g' (genus), or 's' (species).
-        aggregate (bool, optional): Whether to aggregate unclassified taxa counts into a single column. Default is False.
-
-    Returns:
-        BioFlowMLClass: An instance of BioFlowMLClass with unclassified taxa filtered out from the DataFrame.
-
-    Raises:
-        ValueError: If the provided taxonomic level is not supported or if the taxonomic profile has not been
-                    classified to the selected level.
-
-    Notes:
-        This function modifies the DataFrame stored in the BioFlowMLClass object.
-
-    Example:
-        ```python
-        # Assuming obj is an instance of BioFlowMLClass with a DataFrame containing taxa names
-        filter_unclassified_taxa(obj, 'g', aggregate=True)
-        ```      
-    """
+def trim_dup_taxa_names(obj: BioFlowMLClass, level):
+    
+    logger = get_main_logger()
+    logger.warning('trim_dup_taxa_names')
+    
     level_indicators = ['d','p','c','o','f','g','s']
-    level_names = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
-
-    if level not in level_indicators:
-        raise ValueError(f"Provided taxonomic level '{level}' not supported! Available options: {level_indicators}")
-    
-    index_level = level_indicators.index(level)
-    indication_str = level_indicators[index_level] + '__'
-    prev_indication_str = level_indicators[index_level-1] + '__'
-    
-    if not any(indication_str in col for col in obj.df.columns):
-        raise ValueError(f"The provided taxonomic profile has not been classified to the selected level ({level_names[index_level]})!")
-    
-    features_to_drop = []
     duplicated_info_trimmed = {}
+    
+    index = level_indicators.index(level)
+    next_index = index + 1
+    
+    indication_str = level_indicators[index] + '__'
+    next_indication_str = level_indicators[next_index] + '__' if next_index < len(level_indicators) else None
     
     # Remove duplicate information about other levels added to the last part of the name
     for c in obj.df.columns:
         if indication_str in c:
             level_name_full = c.split(indication_str)[-1]
+            if next_indication_str:
+                level_name_full = level_name_full.split(next_indication_str)[0].rstrip(';_').rstrip(';')
+            
             other_levels = level_indicators.copy()
+            
             # Remove the expected level
             other_levels.remove(level)
             other_level_indicators_with_suffix = [item + '__' for item in other_levels]
@@ -195,39 +171,118 @@ def filter_unclassified_taxa(obj: BioFlowMLClass, level, aggregate=False):
                     c_new = c.replace(level_name_full, level_name_new)
                     obj.df.rename(columns={c: c_new}, inplace=True)
                     duplicated_info_trimmed[c_new] = c
-                
+    
     if duplicated_info_trimmed:
         logger = get_main_logger()
         logger.info(f'Some duplicated information trimmed from taxa names: \n{serialize_dict(duplicated_info_trimmed)}')
-        
-    for c in obj.df.columns:
-        if (indication_str not in c and '__' in c) or c == 'unclassified':
-            features_to_drop.append(c)
-        else:
-            level_name_full = c.split(indication_str)[-1]
-            level_name = level_name_full.replace('_',' ')
 
-            if 'uncultured' in level_name or 'norank' in level_name:
-                prev_level_name = c.split(indication_str)[0].split(prev_indication_str)[-1]
-                prev_level_name = prev_level_name.replace('_',' ').replace(';','')
-                if 'uncultured' in prev_level_name or 'norank' in prev_level_name:
-                    features_to_drop.append(c)
-            
-            if 'unclassified' in level_name:
-                features_to_drop.append(c)
-                
+@log_errors_and_warnings
+def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False):
+    """
+    Aggregates taxa in the dataframe based on the specified taxonomic level.
 
-    if aggregate:
-      selected_columns = obj.df[features_to_drop]
-      sum_column = selected_columns.sum(axis=1)
-      obj.df = obj.df.drop(columns=features_to_drop)
-      obj.df['unclassified'] = sum_column
-    else:
-      obj.df = obj.df.drop(columns=features_to_drop)
+    Parameters:
+        obj (BioFlowMLClass): An instance of BioFlowMLClass containing a DataFrame with taxa names.
+        level (str): The taxonomic level to aggregate by (e.g., 'd', 'p', 'c', 'o', 'f', 'g', 's').
+        drop_unclassified (bool): Whether to drop unclassified taxa. Defaults to True.
+
+    Returns:
+        BioFlowMLClass: The modified BioFlowMLClass object with taxa aggregated by the specified level in the pandas DataFrame.
     
-    logger = get_main_logger()
-    logger.debug(f'Unclassified taxa ({level_names[index_level]} level) dropped from microbiome data:\n{serialize_list(features_to_drop)}')
+    Raises:
+        ValueError: If the provided level is not supported.
+    
+    Example:
+        ```python
+        # Assuming obj is an instance of BioFlowMLClass with a DataFrame containing taxa names
+        obj = aggregate_taxa_by_level(obj, 'f')
+        ```
+    """
+    # Define valid taxonomic level indicators
+    level_indicators = ['d', 'p', 'c', 'o', 'f', 'g', 's']
+    level_names = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+    
+    # Check if the provided level is valid
+    if level not in level_indicators:
+        raise ValueError(f'Provided level ({level}) not supported! Possible options: {level_indicators}')
+
+    # Create the indication string for the specified level (e.g. 'g__')
+    # previous and next level
+    index = level_indicators.index(level)
+    prev_index = index - 1
+    next_index = index + 1
+
+    indication_str = level_indicators[index] + '__'
+    prev_indication_str = level_indicators[prev_index] + '__' if prev_index >= 0 else None
+    next_indication_str = level_indicators[next_index] + '__' if next_index < len(level_indicators) else None
+    
+    if not any(indication_str in col for col in obj.df.columns):
+        raise ValueError(f"The provided taxonomic profile has not been classified to the selected level ({level_names[index]})!")
+    
+    
+    print('Hello!')
+    trim_dup_taxa_names(obj, level)
+    
+    unclassified_indications = ['norank', 'unclassified']
+    aggregate_taxa = {'unclassified': []}
+
+    for c in obj.df.columns:
+        if indication_str not in c and '__' in c:
+            aggregate_taxa['unclassified'].append(c)
+        elif indication_str in c:
+            level_name = c.split(indication_str)[-1].split(next_indication_str)[0] if next_indication_str else c.split(indication_str)[-1]
+            
+            if any(substring in level_name for substring in unclassified_indications):
+                aggregate_taxa['unclassified'].append(c)
+            elif 'uncultured' in level_name:
+                if prev_indication_str:
+                    prev_level_name = c.split(indication_str)[0].split(prev_indication_str)[-1].replace('_', ' ').replace(';', '')
+                    if 'uncultured' in prev_level_name:
+                        aggregate_taxa['unclassified'].append(c)
+                    else:
+                        aggregate_name = c.split(next_indication_str)[0].rstrip(';') if next_indication_str else c
+                        aggregate_name = aggregate_name.rstrip(';__')
+                        aggregate_taxa.setdefault(aggregate_name, []).append(c)
+                else:
+                    aggregate_taxa['unclassified'].append(c)
+            else:
+                aggregate_name = c.split(next_indication_str)[0].rstrip(';') if next_indication_str else c
+                aggregate_name = aggregate_name.rstrip(';__')
+                aggregate_taxa.setdefault(aggregate_name, []).append(c)    
+    
+    
+    # Initialize lists to store columns to sum and drop
+    sum_columns = []
+    drop_columns = []
+
+    # Iterate over the aggregated taxa dictionary
+    for key, value in aggregate_taxa.items():
+        if value:
+            # Select the columns to aggregate
+            selected_columns = obj.df[value]
+            
+            # Sum the selected columns across rows
+            sum_column = selected_columns.sum(axis=1)
+            sum_column.name = key
+            sum_columns.append(sum_column)
+            
+            # Extend the list of columns to drop
+            drop_columns.extend(list(selected_columns))
+
+
+
+    # Drop the original columns that were aggregated
+    obj.df = obj.df.drop(columns=drop_columns)
+    
+    # Concatenate the original dataframe with the new summed columns
+    obj.df = pd.concat([obj.df] + sum_columns, axis=1)
+    
+    if drop_unclassified:
+        obj.df = obj.df.drop(columns=['unclassified'])
+    
+    obj.out_dir_name = f'{obj.out_dir_name}_{level}'
     obj.log_obj()
+    
     return obj
 
 @log_errors_and_warnings
@@ -293,89 +348,7 @@ def trim_taxa_names(obj: BioFlowMLClass):
         non_unique_columns = obj.df.columns[obj.df.columns.duplicated()]
         obj.df = obj.df.drop(non_unique_columns, axis=1)
         
-        
-        
         logger = get_main_logger()
         logger.debug(f'Taxa names trimmed and changed:\n{log_str}')
         obj.log_obj()
-    return obj
-
-@log_errors_and_warnings
-def aggregate_taxa_by_level(obj: BioFlowMLClass, level, aggregate_unclassified=True):
-    """
-    Aggregates taxa in the dataframe based on the specified taxonomic level.
-
-    Parameters:
-        obj (BioFlowMLClass): An instance of BioFlowMLClass containing a DataFrame with taxa names.
-        level (str): The taxonomic level to aggregate by (e.g., 'd', 'p', 'c', 'o', 'f', 'g', 's').
-        aggregate_unclassified (bool): Whether to aggregate unclassified taxa. Defaults to True.
-
-    Returns:
-        BioFlowMLClass: The modified BioFlowMLClass object with taxa aggregated by the specified level in the pandas DataFrame.
-    
-    Raises:
-        ValueError: If the provided level is not supported.
-    
-    Example:
-        ```python
-        # Assuming obj is an instance of BioFlowMLClass with a DataFrame containing taxa names
-        obj = aggregate_taxa_by_level(obj, 'f')
-        ```
-    """
-    # Define valid taxonomic level indicators
-    level_indicators = ['d', 'p', 'c', 'o', 'f', 'g', 's']
-    
-    # Check if the provided level is valid
-    if level not in level_indicators:
-        raise ValueError(f'Provided level ({level}) not supported! Possible options: {level_indicators}')
-
-    # Create the indication string for the specified level (e.g. 'g__')
-    indication_str = level + '__'
-    
-    # Initialize a dictionary to store aggregated taxa
-    aggregate_taxa = {'unclassified': []}
-
-    for c in obj.df.columns:
-        # Skip ID columns, metadata, and labels
-        if '__' in c and ';' in c:
-            c_parts = c.split(';')
-            
-            # Find the part that matches the indication string
-            level_name = [item for item in c_parts if indication_str in item]
-            
-            # If a matching part is found, aggregate by that level
-            if level_name:
-                level_name = level_name[0]
-                if level_name not in aggregate_taxa:
-                    aggregate_taxa[level_name] = [c]
-                else:
-                    aggregate_taxa[level_name].append(c)
-            else:
-                # If no matching part is found, classify as unclassified
-                aggregate_taxa['unclassified'].append(c)
-
-    # Initialize lists to store columns to sum and drop
-    sum_columns = []
-    drop_columns = []
-
-    # Iterate over the aggregated taxa dictionary
-    for key, value in aggregate_taxa.items():
-        if key != 'unclassified' or (aggregate_unclassified and value):
-            # Select the columns to aggregate
-            selected_columns = obj.df[value]
-            
-            # Sum the selected columns across rows
-            sum_column = selected_columns.sum(axis=1)
-            sum_column.name = key
-            sum_columns.append(sum_column)
-            
-            # Extend the list of columns to drop
-            drop_columns.extend(list(selected_columns))
-
-    # Drop the original columns that were aggregated
-    obj.df = obj.df.drop(columns=drop_columns)
-    
-    # Concatenate the original dataframe with the new summed columns
-    obj.df = pd.concat([obj.df] + sum_columns, axis=1)
-
     return obj

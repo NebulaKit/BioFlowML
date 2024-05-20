@@ -63,7 +63,7 @@ def check_normality(data: pd.core.series.Series, translations: dict = {}, alpha:
     if translations:
         temp_str = (
             f'{tr.translate("histogram_labels.anderson_statistic", translations)}: '
-            f'{anderson_result.statistic:.3f} '
+            f'{anderson_result.statistic:.3f}\n'
             f'(α=0.05, {tr.translate("histogram_labels.anderson_critical_value", translations)}='
             f'{anderson_result.critical_values[2]:.3f})'
         )
@@ -144,7 +144,7 @@ def plot_transformations(obj: BioFlowMLClass, feature_name: str, log_transform_t
     colors = sns.light_palette(color, n_colors=6)
     sns.set_style("white")
     sns.set_context("notebook", font_scale=1.6)
-    fig, axes = plt.subplots(2, len(transformations), figsize=(6.5*len(transformations), 10))
+    fig, axes = plt.subplots(2, len(transformations), figsize=(6.7*len(transformations), 10))
     plt.subplots_adjust(hspace=0.5)
 
     # Adjust position of the second row of subplots to add space between rows
@@ -268,7 +268,7 @@ def check_all_distributions(obj: BioFlowMLClass):
             column,
             int(log_transform_type),
             plot_color) 
-        for column in obj.df.columns)
+        for column in obj.df.columns if column not in obj.exclude_features)
     
     # Collect the summary statistics of normalized features
     norm_by_default_list = []

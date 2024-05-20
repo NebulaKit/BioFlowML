@@ -7,7 +7,7 @@ project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
-from src.preprocessing.microbiome_preprocessing import transpose_otu_table, merge_with_metadata, filter_unclassified_taxa, trim_taxa_names, aggregate_taxa_by_level
+from src.preprocessing.microbiome_preprocessing import transpose_otu_table, trim_taxa_names, aggregate_taxa_by_level
 import src.utils.IO as io
 import pandas as pd
 
@@ -20,11 +20,9 @@ def prepare_species_level_feature_matrix(relative_data_path:str):
     
     # Transpose OTU Table for microbiome data
     obj = transpose_otu_table(obj)
-    obj.df.to_csv(f'data/processed/{out_dir_name}_transposed.csv', index=False)
     
-    # Filter taxa unclassified to species level
-    # (use the most specific taxonomic rank for machine learning models)
-    obj = filter_unclassified_taxa(obj, 's')
+    # Prepare species level feature matrix with unclassified taxa dropped
+    obj = aggregate_taxa_by_level(obj, 's', drop_unclassified=True)
     
     # Trim taxa names and save as csv
     obj = trim_taxa_names(obj)
@@ -40,8 +38,8 @@ def prepare_phylum_level_feature_matrix(relative_data_path:str):
     # Transpose OTU Table for microbiome data
     obj = transpose_otu_table(obj)
     
-    # Aggregate species data to phylum level data
-    obj = aggregate_taxa_by_level(obj, 'p')
+    # Aggregate species data to phylum level data and drop unclassified
+    obj = aggregate_taxa_by_level(obj, 'p', drop_unclassified=True)
     
     # Trim taxa names and save as csv
     obj = trim_taxa_names(obj)
