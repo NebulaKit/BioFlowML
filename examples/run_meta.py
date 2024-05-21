@@ -21,26 +21,25 @@ def main():
     io.reset_logfile()
     
     # Create and initialize BioFlowML class instance
-    relative_data_path = 'data/synthetic/metadata.csv'
-    out_dir_name = relative_data_path.split('/')[-1].split('.')[0] # same as dataset name
-    df = pd.read_csv(relative_data_path)
+    df = pd.read_csv('data/synthetic/metadata_missing_values.csv')
     obj = BioFlowMLClass(df,                 
-                    out_dir_name = out_dir_name,
+                    out_dir_name = 'metadata',
                     label_feature = 'subject_group',
                     exclude_features = ['sample_id'],
                     control_label = 'Control',
                     lang = 'lv')
     
-    # Chech data distributions for all microbial features
+    # Preprocess non-numerical features and missing values
+    # TODO: integrate fit_transform in the preprocessing module
+    pipeline = get_preprocessing_pipeline(obj)
+    obj.df = pipeline.fit_transform(obj.df)
+    # print(f'encoded_features: {serialize_dict(obj.get_encoded_features())}')
+    
+    # Check data distributions for all metadata features
     check_all_distributions(obj)
     
-    # Preprocessing pipeline
-    pipeline = get_preprocessing_pipeline(obj)
-    df_preprocessed = pipeline.fit_transform(obj.df)
-    print(f'df_preprocessed: {df_preprocessed.head()}')
     
-    # print(f'encoded_features: {serialize_dict(obj.get_encoded_features())}')
-    # df_preprocessed.to_csv(f'data/processed/{out_dir_name}_processed.csv', index=False)
+    obj.df.to_csv(f'data/processed/{obj.out_dir_name}_processed.csv', index=False)
     
     # Normalize and scale features
     

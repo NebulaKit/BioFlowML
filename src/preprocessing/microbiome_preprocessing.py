@@ -177,7 +177,7 @@ def trim_dup_taxa_names(obj: BioFlowMLClass, level):
         logger.info(f'Some duplicated information trimmed from taxa names: \n{serialize_dict(duplicated_info_trimmed)}')
 
 @log_errors_and_warnings
-def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False):
+def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False, trim_taxa=False):
     """
     Aggregates taxa in the dataframe based on the specified taxonomic level.
 
@@ -198,6 +198,9 @@ def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False)
         obj = aggregate_taxa_by_level(obj, 'f')
         ```
     """
+    
+    print('HELLLLLLOOOOOOOOOOOOOOOOOOOOOOO')
+    
     # Define valid taxonomic level indicators
     level_indicators = ['d', 'p', 'c', 'o', 'f', 'g', 's']
     level_names = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
@@ -219,8 +222,9 @@ def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False)
     if not any(indication_str in col for col in obj.df.columns):
         raise ValueError(f"The provided taxonomic profile has not been classified to the selected level ({level_names[index]})!")
     
-    
-    print('Hello!')
+    # Remove duplicating information from taxa names e.g.
+    # d__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__uncultured__f__Methanomethylophilaceae -->
+    # d__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__uncultured
     trim_dup_taxa_names(obj, level)
     
     unclassified_indications = ['norank', 'unclassified']
@@ -278,7 +282,13 @@ def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False)
     if drop_unclassified:
         obj.df = obj.df.drop(columns=['unclassified'])
     
-    obj.out_dir_name = f'{obj.out_dir_name}_{level}'
+    # Shorten the taxa names to last significant level
+    # d__Archaea;p__Thermoplasmatota;c__Thermoplasmata;o__Methanomassiliicoccales;f__Methanomethylophilaceae;g__uncultured -->
+    # Methanomethylophilaceae uncultured
+    if trim_taxa:
+        obj = trim_taxa_names(obj)
+        
+    obj.out_dir_name = f'{obj.out_dir_name}_{level_names[index]}'
     obj.log_obj()
     
     return obj
@@ -349,4 +359,5 @@ def trim_taxa_names(obj: BioFlowMLClass):
         logger = get_main_logger()
         logger.debug(f'Taxa names trimmed and changed:\n{log_str}')
         obj.log_obj()
+        
     return obj

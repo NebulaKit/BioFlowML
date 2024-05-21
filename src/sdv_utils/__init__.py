@@ -31,7 +31,7 @@ def generate_synthetic_data(obj: BioFlowMLClass, num_rows=1000, evaluate=False):
         synthetic_file_path = generate_synthetic_data(obj, num_rows=1000, evaluate=False)
     """
     
-    relative_out_dir_path = 'data/processed/synthetic'
+    relative_out_dir_path = '../data/synthetic'
     abs_out_dir_path = get_absolute_path(relative_out_dir_path, create_dir=True)
     
     # Metadata avout the provided dataset, e.g. column names, data types etc.

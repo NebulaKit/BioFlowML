@@ -268,7 +268,7 @@ def check_all_distributions(obj: BioFlowMLClass):
             column,
             int(log_transform_type),
             plot_color) 
-        for column in obj.df.columns if column not in obj.exclude_features)
+        for column in obj.df.columns if (column not in obj.exclude_features) and column != obj.label_feature)
     
     # Collect the summary statistics of normalized features
     norm_by_default_list = []

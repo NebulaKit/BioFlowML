@@ -281,46 +281,71 @@ class FeatureDropper(BaseEstimator, TransformerMixin):
 
 class NumericalImputer(BaseEstimator, TransformerMixin):
 
-    def __init__(self, features_to_impute=None):
+    def __init__(self, features_to_impute=None, label_feature=None):
         self.features_to_impute = features_to_impute
+        self.label_feature = label_feature
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-      if self.features_to_impute is None:
-            return X
-      
-      imputer = SimpleImputer(strategy="median")
-      X_copy = X.copy()
+        
+        imputer = SimpleImputer(strategy="median")
+        X_copy = X.copy()
 
-      for feature in self.features_to_impute:
-          X_copy[feature] = imputer.fit_transform(X_copy[[feature]])[:, 0]
+        # If label_feature is provided, perform separate imputation for each label
+        if self.label_feature is not None:
+            for label in X_copy[self.label_feature].unique():
+                label_rows = X_copy[X_copy[self.label_feature] == label].copy()  # Ensure we're working on a copy
+                for feature in self.features_to_impute:
+                  if feature != self.label_feature:
+                    label_rows.loc[:, feature] = imputer.fit_transform(label_rows[[feature]]).squeeze()
+                X_copy.loc[X_copy[self.label_feature] == label, self.features_to_impute] = label_rows[self.features_to_impute]
+        
+        # If label_feature is not provided, impute all rows
+        else:
+            for feature in self.features_to_impute:
+                X_copy.loc[:, feature] = imputer.fit_transform(X_copy[[feature]]).squeeze()
 
-      return X_copy
+        return X_copy
 
 class CategoricalImputer(BaseEstimator, TransformerMixin):
 
-    def __init__(self, features_to_impute=None):
+    def __init__(self, features_to_impute=None, label_feature=None):
         self.features_to_impute = features_to_impute
+        self.label_feature = label_feature
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-      if self.features_to_impute is None:
-            return X
-      
-      cat_imputer = SimpleImputer(strategy='most_frequent')
-      X_copy = X.copy()
+        if self.features_to_impute is None:
+                return X
+        
+        cat_imputer = SimpleImputer(strategy='most_frequent')
+        X_copy = X.copy()
 
-      for feature in self.features_to_impute:
-          # Custom imputer function to replace 'None' with NaN
-          X_copy[feature] = X_copy[feature].apply(lambda x: np.nan if type(x) == type(None) else x)
-          # Apply imputation
-          X_copy[feature] = cat_imputer.fit_transform(X_copy[[feature]]).squeeze()
+        # If label_feature is provided, perform separate imputation for each label
+        if self.label_feature is not None:
+            for label in X_copy[self.label_feature].unique():
+                label_rows = X_copy[X_copy[self.label_feature] == label].copy()  # Ensure working on a copy
+                for feature in self.features_to_impute:
+                    if feature != self.label_feature:
+                        # Custom imputer function to replace 'None' with NaN
+                        label_rows.loc[:, feature] = label_rows[feature].apply(lambda x: np.nan if pd.isnull(x) else x)
+                        # Apply imputation
+                        label_rows.loc[:, feature] = cat_imputer.fit_transform(label_rows[[feature]]).squeeze()
+                X_copy.loc[X_copy[self.label_feature] == label, self.features_to_impute] = label_rows[self.features_to_impute]
 
-      return X_copy
+        # If label_feature is not provided, impute all rows
+        else:
+            for feature in self.features_to_impute:
+                # Custom imputer function to replace 'None' with NaN
+                X_copy.loc[:, feature] = X_copy[feature].apply(lambda x: np.nan if pd.isnull(x) else x)
+                # Apply imputation
+                X_copy.loc[:, feature] = cat_imputer.fit_transform(X_copy[[feature]]).squeeze()
+
+        return X_copy
 
 class CustomScaler(BaseEstimator, TransformerMixin):
     """
@@ -634,8 +659,8 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     # TODO: should impute by category (e.g. Control, Liver_disease)
     pipeline = Pipeline([
         # Impute
-        ("categoricalImputer", CategoricalImputer(categorical_features)),
-        ("numericalImputer", NumericalImputer(numerical_features)),
+        ("categoricalImputer", CategoricalImputer(categorical_features, obj.label_feature)),
+        ("numericalImputer", NumericalImputer(numerical_features, obj.label_feature)),
         # Drop rows if needed
         ("rowDropper", RowDropper(features_values_to_drop)),
         # Encode categorical features

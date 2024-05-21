@@ -50,3 +50,6 @@ examples/taxonomic_raw_data_preparation.py
 
 # Ignore log files
 *.log
+
+# Ignore word files
+*.docx
