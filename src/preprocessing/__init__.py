@@ -2,6 +2,7 @@ from src.feature_analysis import get_categorical_features_info, get_categorical_
 from src.utils.monitoring import timeit, log_errors_and_warnings
 from src.utils.IO import get_absolute_path
 from src.utils.logger_setup import get_main_logger
+from src.utils import serialize_dict
 from src.BioFlowMLClass import BioFlowMLClass
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import StandardScaler, RobustScaler, PowerTransformer, OneHotEncoder, LabelEncoder
@@ -415,8 +416,8 @@ class CustomNormalizer(BaseEstimator, TransformerMixin):
             elif self.method == 'log1p':
                 X_transformed[col] = np.log1p(X_transformed[col])
             elif self.method == 'yeo-johnson':
-                pt = PowerTransformer(method='yeo-johnson', standardize=False)
-                X_transformed[col] = pt.fit_transform(X_transformed[col].values.reshape(-1, 1)).flatten()
+                pt = PowerTransformer(method='yeo-johnson')
+                X_transformed[col] = pt.fit_transform(X_transformed[[col]])
             else:
                 raise ValueError("Invalid normalization method. Please choose 'log2', 'log10', 'log1p', or 'yeo-johnson'.")
         
@@ -571,8 +572,9 @@ def get_numerical_feature_pipeline(df: pd.DataFrame, norm_method='yeo-johnson', 
 
     # Create pipeline for numeric features
     numeric_pipeline = Pipeline([
+        # ('scaler', CustomScaler(scaler_type=scaler_type, numeric_features=numeric_features)),
         ('normalizer', CustomNormalizer(method=norm_method, numeric_features=numeric_features)),
-        ('scaler', CustomScaler(scaler_type=scaler_type, numeric_features=numeric_features))
+        
     ])
     return numeric_pipeline
 
@@ -656,6 +658,9 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     categorical_features = get_categorical_features(obj.df)
     numerical_features = [x for x in obj.df.columns if x not in categorical_features]
     
+    print(f'features_values_to_drop: {features_values_to_drop}')
+    x = input('...')
+    
     # TODO: should impute by category (e.g. Control, Liver_disease)
     pipeline = Pipeline([
         # Impute
@@ -677,10 +682,20 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     file_path = os.path.join(path, f'{obj.out_dir_name}_preprocessing_pipeline.joblib')
     dump(pipeline, file_path)
     
+    # Save label encoded feature names and encoding
+    encoded_features = serialize_dict(obj.get_encoded_features())
+    file_path = os.path.join(path, f'{obj.out_dir_name}_encoded_features.txt')
+    with open(file_path, 'w') as file:
+        file.write(encoded_features)
+    
     obj.log_obj()
     return pipeline
 
-def get_preprocessing_pipeline(obj: BioFlowMLClass):
+def get_preprocessing_pipeline(obj: BioFlowMLClass, sort_by=None):
+    
+    if sort_by:
+        if sort_by in obj.df.columns:
+            obj.df = obj.df.sort_values(by=sort_by)
     
     pipeline=None
     

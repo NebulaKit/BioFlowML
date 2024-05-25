@@ -199,8 +199,6 @@ def aggregate_taxa_by_level(obj: BioFlowMLClass, level, drop_unclassified=False,
         ```
     """
     
-    print('HELLLLLLOOOOOOOOOOOOOOOOOOOOOOO')
-    
     # Define valid taxonomic level indicators
     level_indicators = ['d', 'p', 'c', 'o', 'f', 'g', 's']
     level_names = ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']

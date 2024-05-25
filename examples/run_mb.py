@@ -8,9 +8,10 @@ sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_all_distributions
-from src.preprocessing.microbiome_preprocessing import trim_taxa_names, merge_with_metadata, aggregate_taxa_by_level
-from src.preprocessing import get_preprocessing_pipeline, NumericalImputer
+from src.preprocessing.microbiome_preprocessing import  merge_with_metadata, aggregate_taxa_by_level
+from src.preprocessing import get_preprocessing_pipeline, get_numerical_feature_pipeline
 import src.utils.IO as io
+from src.utils import serialize_dict
 import pandas as pd
 
 
@@ -20,7 +21,7 @@ def main():
     io.reset_logfile()
     
     # Create and initialize BioFlowML class instance for the microbiome data
-    df_mb = pd.read_csv('data/synthetic/microbiome_missing_values.csv')
+    df_mb = pd.read_csv('data/synthetic/microbiome.csv')
     id_column = 'sample_id'
     obj_mb = BioFlowMLClass(df_mb,
                             out_dir_name = 'microbiome', # same as dataset name
@@ -41,10 +42,9 @@ def main():
     # Add label feature to the microbiome feature matrix
     obj_mb = merge_with_metadata(obj_mb, obj_meta, [label_feature])
     obj_mb.set_label_feature(label_feature, control_label)
-    # print(f'encoded_features: {serialize_dict(obj.get_encoded_features())}')
     
     # Preprocess non-numerical features and missing values
-    pipeline = get_preprocessing_pipeline(obj_mb)
+    pipeline = get_preprocessing_pipeline(obj_mb, sort_by='sample_id')
     obj_mb.df = pipeline.fit_transform(obj_mb.df)
     
     # Aggregate species data to specific taxonomic level
@@ -54,7 +54,11 @@ def main():
     # Chech data distributions for all microbial features
     check_all_distributions(obj_mb)
     
-    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_processed.csv', index=False)
+    # Normalize and scale numeric features
+    normalization_pipeline = get_numerical_feature_pipeline(obj_mb.df, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
+    obj_mb.df = normalization_pipeline.fit_transform(obj_mb.df)
+    
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}.csv', index=False)
     
     # Select numerical columns
     # df = pd.read_csv('data/processed/microbiome_with_labels.csv')

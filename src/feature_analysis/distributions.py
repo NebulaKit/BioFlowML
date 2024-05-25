@@ -12,7 +12,7 @@ from src.utils.IOHandler import IOHandler
 import src.translate as tr
 from scipy.stats import shapiro, anderson, skew, kurtosis
 from statsmodels.stats.diagnostic import lilliefors
-from sklearn.preprocessing import power_transform
+from sklearn.preprocessing import PowerTransformer
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -45,7 +45,6 @@ def check_normality(data: pd.core.series.Series, translations: dict = {}, alpha:
     """
     test_result_str = ''
     
-    
     # Shapiro-Wilk test
     _, shapiro_pvalue = shapiro(data)
     if translations:
@@ -60,6 +59,7 @@ def check_normality(data: pd.core.series.Series, translations: dict = {}, alpha:
 
     # Anderson-Darling test
     anderson_result = anderson(data)
+    
     if translations:
         temp_str = (
             f'{tr.translate("histogram_labels.anderson_statistic", translations)}: '
@@ -138,7 +138,8 @@ def plot_transformations(obj: BioFlowMLClass, feature_name: str, log_transform_t
         case 3:
             transformations.append((lambda x: np.log10(1 + x), "log10(1 + x)"))
     # Add Yeo-Johnson power transformation
-    transformations.append((lambda x: power_transform(np.array(x).reshape(-1, 1), method='yeo-johnson', standardize=False).flatten().tolist(), "Yeo-Johnson"))
+    # transformations.append((lambda x: power_transform(np.array(x).reshape(-1, 1), method='yeo-johnson', standardize=False).flatten().tolist(), "Yeo-Johnson"))
+    transformations.append((lambda x: PowerTransformer(method='yeo-johnson').fit_transform(x), "PowerTransformer (Yeo-Johnson)"))
     
     # Plotting configurations
     colors = sns.light_palette(color, n_colors=6)
@@ -162,8 +163,17 @@ def plot_transformations(obj: BioFlowMLClass, feature_name: str, log_transform_t
         
         row = i // len(transformations)
         col = i % len(transformations)
-
-        data = obj.df[feature_name] if transform is None else transform(obj.df[feature_name])
+        
+        
+        X = obj.df[[feature_name]]
+        # data = X if transform is None else pd.DataFrame(transform(X).flatten(), index=X.index, columns=X.columns)
+        data = X if transform is None else transform(X)
+        
+        if isinstance(data, np.ndarray):
+            data = pd.DataFrame(data, index=X.index, columns=X.columns)
+        
+        data = data.iloc[:, 0]
+        
         is_normal, _, test_result_str = check_normality(data, translations)
                 
         if is_normal:
