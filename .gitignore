@@ -48,6 +48,8 @@ data/processed/*
 data/FLAML
 src/preprocessing/pipelines
 examples/taxonomic_raw_data_preparation.py
+examples/generate_synthetic_data.py
+src/sdv_utils
 
 # Ignore log files
 *.log

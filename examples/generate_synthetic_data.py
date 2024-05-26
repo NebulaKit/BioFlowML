@@ -8,12 +8,12 @@ sys.path.append(project_root)
 
 from src.sdv_utils import generate_synthetic_data, generate_merged_synthetic_data
 from src.BioFlowMLClass import BioFlowMLClass
-from src.utils import IO
+from src.utils.IOHandler import IOHandler
 import pandas as pd
 
 def main():
     
-    IO.reset_logfile()
+    IOHandler.reset_logfile()
     
     # Load transposed OTU table of microbiome data
     relative_data_path = 'data/processed/microbiome.csv'

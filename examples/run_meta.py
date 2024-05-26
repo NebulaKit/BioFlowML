@@ -7,21 +7,18 @@ project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
-from src.feature_analysis.distributions import check_all_distributions
-from src.preprocessing import start_pipeline_wizard, get_preprocessing_pipeline, get_numerical_feature_pipeline
-import src.utils.IO as io
+from src.feature_analysis.distributions import check_all_transformations
+from src.preprocessing import get_preprocessing_pipeline, get_numerical_feature_pipeline
+from src.utils.IOHandler import IOHandler
 import pandas as pd
-import joblib
-import os
-from src.utils import serialize_dict
 
 
 def main():
     
-    io.reset_logfile()
+    IOHandler.reset_logfile()
     
     # Create and initialize BioFlowML class instance
-    df = pd.read_csv('data/synthetic/metadata_missing_values.csv')
+    df = pd.read_csv('data/synthetic/metadata.csv')
     obj = BioFlowMLClass(df,                 
                     out_dir_name = 'metadata',
                     label_feature = 'subject_group',
@@ -35,7 +32,7 @@ def main():
     obj.df = pipeline.fit_transform(obj.df)
     
     # Check data distributions for all metadata features
-    check_all_distributions(obj)
+    check_all_transformations(obj)
     
     # # Normalize and scale numeric features
     # normalization_pipeline = get_numerical_feature_pipeline(obj.df, exclude_features=obj.exclude_features + [obj.label_feature])

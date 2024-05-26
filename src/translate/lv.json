@@ -1,6 +1,7 @@
 {
     "histogram_labels": {
         "y_axis": "Biežums",
+        "x_axis": "Vērtība",
         "skewness": "Asimetrija",
         "kurtosis": "Ekscess",
         "shapiro_p_value": "Shapiro-Wilk p-vērtība",

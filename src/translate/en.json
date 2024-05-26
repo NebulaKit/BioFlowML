@@ -1,6 +1,7 @@
 {
     "histogram_labels": {
         "y_axis": "Frequency",
+        "x_axis": "Value",
         "skewness": "Skewness",
         "kurtosis": "Kurtosis",
         "shapiro_p_value": "Shapiro-Wilk p-value",

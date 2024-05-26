@@ -49,6 +49,5 @@ def get_logger(logger_name, log_file_path=None):
 
     return loggers[logger_name]
 
-
 def get_main_logger():
     return get_logger('main')

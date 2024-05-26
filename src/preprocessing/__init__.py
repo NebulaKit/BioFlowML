@@ -1,6 +1,6 @@
 from src.feature_analysis import get_categorical_features_info, get_categorical_features, get_binary_features
 from src.utils.monitoring import timeit, log_errors_and_warnings
-from src.utils.IO import get_absolute_path
+from src.utils.IOHandler import IOHandler
 from src.utils.logger_setup import get_main_logger
 from src.utils import serialize_dict
 from src.BioFlowMLClass import BioFlowMLClass
@@ -658,9 +658,6 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     categorical_features = get_categorical_features(obj.df)
     numerical_features = [x for x in obj.df.columns if x not in categorical_features]
     
-    print(f'features_values_to_drop: {features_values_to_drop}')
-    x = input('...')
-    
     # TODO: should impute by category (e.g. Control, Liver_disease)
     pipeline = Pipeline([
         # Impute
@@ -678,7 +675,7 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     ])
     
     # Save the pipeline
-    path = get_absolute_path('preprocessing/pipelines',create_dir=True)
+    path = IOHandler.get_absolute_path('src/preprocessing/pipelines', create_dir=True)
     file_path = os.path.join(path, f'{obj.out_dir_name}_preprocessing_pipeline.joblib')
     dump(pipeline, file_path)
     
@@ -702,7 +699,7 @@ def get_preprocessing_pipeline(obj: BioFlowMLClass, sort_by=None):
     # Check if pipeline saved
     directory_path = "src/preprocessing/pipelines"
     pipeline_file_name = f'{obj.out_dir_name}_preprocessing_pipeline.joblib'
-
+    
     if os.path.isdir(directory_path):
         if pipeline_file_name in os.listdir(directory_path):
             # TODO: prompt user before load

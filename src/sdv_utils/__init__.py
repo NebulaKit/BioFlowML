@@ -4,7 +4,7 @@ Module for generating synthetic datasets using SDV (Synthetic Data Vault).
 
 from src.BioFlowMLClass import BioFlowMLClass
 from src.utils.logger_setup import get_logger
-from src.utils.IO import get_absolute_path
+from src.utils.IOHandler import IOHandler
 from src.utils.monitoring import log_errors_and_warnings, timeit
 from sdv.metadata import SingleTableMetadata
 from sdv.single_table import GaussianCopulaSynthesizer
@@ -32,7 +32,7 @@ def generate_synthetic_data(obj: BioFlowMLClass, num_rows=1000, evaluate=False):
     """
     
     relative_out_dir_path = '../data/synthetic'
-    abs_out_dir_path = get_absolute_path(relative_out_dir_path, create_dir=True)
+    abs_out_dir_path = IOHandler.get_absolute_path(relative_out_dir_path, create_dir=True)
     
     # Metadata avout the provided dataset, e.g. column names, data types etc.
     metadata = SingleTableMetadata()

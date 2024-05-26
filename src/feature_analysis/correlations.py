@@ -7,14 +7,12 @@ from src.utils.monitoring import timeit, log_errors_and_warnings
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
 import pandas as pd
-import src.utils.IO as io
+from src.utils.IOHandler import IOHandler
 import seaborn as sns
 import src.translate as tr
 import src.utils.microbiome as mb
 import src.utils as utils
 import os
-
-from utils.IOHandler import IOHandler
 
 
 class CorrelationAnalyzer:

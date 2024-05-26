@@ -8,7 +8,7 @@ sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
 from src.preprocessing.microbiome_preprocessing import transpose_otu_table, trim_taxa_names, aggregate_taxa_by_level
-import src.utils.IO as io
+from src.utils.IOHandler import IOHandler
 import pandas as pd
 
 
@@ -47,7 +47,7 @@ def prepare_phylum_level_feature_matrix(relative_data_path:str):
 
 def main():
     
-    io.reset_logfile()
+    IOHandler.reset_logfile()
     
     # For this example 16S rRNA OTU table containing gut microbiome species level 
     # taxonomic profiles of children with ASD is applied

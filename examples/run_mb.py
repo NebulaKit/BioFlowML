@@ -7,10 +7,10 @@ project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
-from src.feature_analysis.distributions import check_all_distributions
+from src.feature_analysis.distributions import check_all_transformations
 from src.preprocessing.microbiome_preprocessing import  merge_with_metadata, aggregate_taxa_by_level
 from src.preprocessing import get_preprocessing_pipeline, get_numerical_feature_pipeline
-import src.utils.IO as io
+from src.utils.IOHandler import IOHandler
 from src.utils import serialize_dict
 import pandas as pd
 
@@ -18,7 +18,7 @@ import pandas as pd
 # TODO: need tp think of how to stop workflow from further execution if previous task fails
 def main():
     
-    io.reset_logfile()
+    IOHandler.reset_logfile()
     
     # Create and initialize BioFlowML class instance for the microbiome data
     df_mb = pd.read_csv('data/synthetic/microbiome.csv')
@@ -52,13 +52,13 @@ def main():
     aggregate_taxa_by_level(obj_mb, 'g', trim_taxa=True)
 
     # Chech data distributions for all microbial features
-    check_all_distributions(obj_mb)
+    check_all_transformations(obj_mb)
     
     # Normalize and scale numeric features
-    normalization_pipeline = get_numerical_feature_pipeline(obj_mb.df, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
-    obj_mb.df = normalization_pipeline.fit_transform(obj_mb.df)
+    # normalization_pipeline = get_numerical_feature_pipeline(obj_mb.df, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
+    # obj_mb.df = normalization_pipeline.fit_transform(obj_mb.df)
     
-    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}.csv', index=False)
+    # obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}.csv', index=False)
     
     # Select numerical columns
     # df = pd.read_csv('data/processed/microbiome_with_labels.csv')
