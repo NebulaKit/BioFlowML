@@ -136,9 +136,6 @@ def merge_with_metadata(obj: BioFlowMLClass, obj_meta: pd.DataFrame, features_to
 @log_errors_and_warnings
 def trim_dup_taxa_names(obj: BioFlowMLClass, level):
     
-    logger = get_main_logger()
-    logger.warning('trim_dup_taxa_names')
-    
     level_indicators = ['d','p','c','o','f','g','s']
     duplicated_info_trimmed = {}
     

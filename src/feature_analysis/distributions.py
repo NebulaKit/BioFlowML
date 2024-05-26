@@ -144,7 +144,7 @@ def plot_transformations(obj: BioFlowMLClass, feature_name:str):
         "QuantileTransformer")
     ]
     
-    # Load label translation for plots
+    # Load plot label translation for plots
     translations = tr.load_translations(obj.lang)
     
     # Create subplots for each data transformation method
@@ -187,10 +187,14 @@ def plot_transformations(obj: BioFlowMLClass, feature_name:str):
         fig.suptitle(f"{feature_name}", ha='center', fontsize=26)
     
     plt.tight_layout()
+    
+    # Log results to main
+    logger = get_main_logger()
+    logger.info(f'{feature_name} normalized: {normality_achieved}')
 
     # Save result plot
     output_dir = 'normal_features' if normality_achieved else 'other_features'
-    out_dir_name = IOHandler.get_absolute_path(f'../data/processed/distributions/{obj.out_dir_name}/{output_dir}', create_dir=True)
+    out_dir_name = IOHandler.get_absolute_path(f'../results/feature_analysis/distributions/{obj.out_dir_name}/{output_dir}', create_dir=True)
     index = obj.df.columns.get_loc(feature_name)
     out_file_path = os.path.join(out_dir_name, f'{index}_{mb.trim_id(feature_name)}.png')
     plt.savefig(out_file_path, dpi=250)
@@ -199,9 +203,9 @@ def plot_transformations(obj: BioFlowMLClass, feature_name:str):
     return norm_result
 
 @timeit
-@log_errors_and_warnings
 @log_execution
-def check_all_transformations(obj: BioFlowMLClass, n_features=None):
+@log_errors_and_warnings
+def check_transformations(obj: BioFlowMLClass, n_features=None):
     """
     Applies various transformations to multiple features in a DataFrame, plots the distributions of the transformed data,
     and logs the results.
@@ -227,17 +231,25 @@ def check_all_transformations(obj: BioFlowMLClass, n_features=None):
     if n_features is not None and (n_features < 1 or n_features > obj.df.shape[1]):
         raise ValueError(f"n_features must be between 1 and {obj.df.shape[1]}")
     
+    # Check if results already present
+    directory_path = f'results/feature_analysis/distributions/{obj.out_dir_name}'
+    if os.path.isdir(directory_path):
+        print(f'Directory [{directory_path}] already exists!')
+        user_input = input(f'Skip [{obj.out_dir_name}] transformation distribution plotting (y/n)? ')
+        if user_input.lower() != 'n':
+            return
+    
+    # Features to transform and plot
     features = obj.df.iloc[:, :n_features].columns.tolist() if n_features else obj.df.columns
     
-    logger = get_main_logger()
-    logger.info(f'')
-    
+    # Process in parallel
     results = Parallel(n_jobs=-1)(
         delayed(plot_transformations)(obj, f) 
         for f in features
         if (f not in obj.exclude_features) and f != obj.label_feature
     )
     
+    # Log the summary results
     log_results(results, obj.out_dir_name)
 
 @log_errors_and_warnings
@@ -282,9 +294,8 @@ def log_results(results:list[dict], out_dir_name:str):
     normal_feature_cnt = sum(any(val == 1 for val in r.values()) for r in results)
 
     # PLog result summary
-    out_dir_path = IOHandler.get_absolute_path(f'../data/processed/distributions/{out_dir_name}', create_dir=True)
+    out_dir_path = IOHandler.get_absolute_path(f'../results/feature_analysis/distributions/{out_dir_name}', create_dir=True)
     logger_path = os.path.join(out_dir_path,'result_summary.log')
-    logger = get_logger(f'check_all_transformations_{out_dir_name}', logger_path)
+    logger = get_logger(f'check_all_transformations [{out_dir_name}]', logger_path)
     logger.info(f'\n{df_result_summary}')
     logger.info(f'{normal_feature_cnt}/{len(results)} features normalized')
-    

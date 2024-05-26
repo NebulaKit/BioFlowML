@@ -7,7 +7,8 @@ project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
-from src.feature_analysis.distributions import check_all_transformations
+from src.feature_analysis.distributions import check_transformations
+from src.feature_analysis.correlations import check_correlations
 from src.preprocessing import get_preprocessing_pipeline, get_numerical_feature_pipeline
 from src.utils.IOHandler import IOHandler
 import pandas as pd
@@ -32,15 +33,15 @@ def main():
     obj.df = pipeline.fit_transform(obj.df)
     
     # Check data distributions for all metadata features
-    check_all_transformations(obj)
+    check_transformations(obj)
     
     # # Normalize and scale numeric features
-    # normalization_pipeline = get_numerical_feature_pipeline(obj.df, exclude_features=obj.exclude_features + [obj.label_feature])
-    # obj.df = normalization_pipeline.fit_transform(obj.df)
-    
+    normalization_pipeline = get_numerical_feature_pipeline(obj.df, exclude_features=obj.exclude_features + [obj.label_feature])
+    obj.df = normalization_pipeline.fit_transform(obj.df)
     obj.df.to_csv(f'data/processed/{obj.out_dir_name}_normalized.csv', index=False)
     
     # Correlation analysis
+    check_correlations(obj)
     
     # Differential distribution analysis
     

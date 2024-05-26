@@ -6,7 +6,7 @@ class IOHandler:
     @staticmethod
     def reset_logfile():
         root_dir = IOHandler.get_project_root_dir()
-        log_path = os.path.join(root_dir, 'src/main.log')
+        log_path = os.path.join(root_dir, 'results/main.log')
         
         # Check if the file exists before attempting to delete it
         if os.path.exists(log_path):

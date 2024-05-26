@@ -18,7 +18,7 @@ def get_logger(logger_name, log_file_path=None):
     global loggers
     
     if not log_file_path:
-        log_file_path = os.path.join(os.path.dirname(__file__), f'../{logger_name}.log')
+        log_file_path = os.path.join(os.path.dirname(__file__), f'../../results/{logger_name}.log')
     
     if logger_name not in loggers:
         logger = logging.getLogger(logger_name)

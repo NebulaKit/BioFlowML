@@ -50,6 +50,7 @@ src/preprocessing/pipelines
 examples/taxonomic_raw_data_preparation.py
 examples/generate_synthetic_data.py
 src/sdv_utils
+results
 
 # Ignore log files
 *.log

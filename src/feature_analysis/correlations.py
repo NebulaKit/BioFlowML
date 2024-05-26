@@ -1,185 +1,185 @@
 """
-Module for calculating and visualizing correlations between variables.
+Module for calculating and visualizing correlations between features and labels.
 """
 
-import src.utils.logger_setup as log
-from src.utils.monitoring import timeit, log_errors_and_warnings
+from src.BioFlowMLClass import BioFlowMLClass
+from src.utils.monitoring import timeit, log_errors_and_warnings, log_execution
+from src.utils.logger_setup import get_main_logger
+from src.utils.IOHandler import IOHandler
+import src.translate as tr
+
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
-import pandas as pd
-from src.utils.IOHandler import IOHandler
 import seaborn as sns
-import src.translate as tr
-import src.utils.microbiome as mb
-import src.utils as utils
+import pandas as pd
 import os
 
 
-class CorrelationAnalyzer:
-    @log_errors_and_warnings
-    def __init__(self, df: pd.DataFrame, out_dir_name, target_features, exclude_features=[], control_feature_name=None, lang='en'):
-        self.df = df
+def get_correlations(obj: BioFlowMLClass, case_label: str = None, control_label: str = None, method: str = 'spearman', n_features=15):
+    """
+    Compute correlation matrix between features and a label of a BioFlowMLClass instance containing pandas DataFrame property.
+
+    Args:
+        obj (BioFlowMLClass): An instance of BioFlowMLClass containing the dataset.
+        case_label (str, optional): Label indicating the cases in the dataset. Defaults to None.
+        control_label (str, optional): Label indicating the controls in the dataset. Defaults to None.
+        method (str, optional): Method for computing correlations. Supported methods are 'spearman', 'pearson', and 'kendall'. Defaults to 'spearman'.
+        n_features (int, optional): Number of top correlated features to include in the output. Defaults to 15.
+
+    Returns:
+        pd.DataFrame: Correlation matrix between selected features and label.
         
-        if not IOHandler.is_valid_directory_name(out_dir_name):
-            raise ValueError("Invalid directory name (out_dir_name)!")
-        self.out_dir_name = out_dir_name
-        
-        missing_target_features = [col for col in target_features if col not in self.df.columns]
-        if missing_target_features:
-            raise ValueError(f"The following target features are not present in the DataFrame: {', '.join(missing_target_features)}.")
-        elif not target_features:
-            raise ValueError("No target feature/-s provided!")
-        self.target_features = target_features
-        
-        missing_exclude_features = [col for col in exclude_features if col not in self.df.columns]
-        if missing_exclude_features:
-            raise ValueError(f"The following features to be excluded are not present in the DataFrame: {', '.join(missing_exclude_features)}.")
-        self.exclude_features = exclude_features
-        
-        if control_feature_name:
-            if control_feature_name not in self.df.columns:
-                raise ValueError(f"The control feature '{control_feature_name}' not the DataFrame!")
-        self.control_feature_name = control_feature_name
-        
-        lang_json_files = IOHandler.get_json_files(f'{IOHandler.get_project_root_dir()}/translate')
-        supported_langs = [os.path.splitext(file_name)[0] for file_name in lang_json_files]
-        if lang not in supported_langs:
-            raise ValueError(f"Unsupported language selected! Possible options: {supported_langs}")
-        self.lang = lang
-        
-    @log_errors_and_warnings
-    def plot_correlations_with_target(self, target_feature_name, top_n=15, method='spearman'):
-        # Implementation of plot_correlations_with_target function
-        print()
-        
-    # @timeit
-    # def check_all_correlations(self):
-    #     Parallel(n_jobs=-1)(
-    #         delayed(plot_correlations_with_target)(
-    #             df,
-    #             target,
-    #             target_features,
-    #             exclude_features,
-    #             control_feature_name, # if None then 'all-samples', othervise 'cases-vs-controls'
-    #             lang = lang
-    #         )
-    #         for target in target_features
-    #     )
+    Example:
+        ```python
+        corr_matrix = get_correlations(obj, 'case', 'control')
+        ```
+    """
+    methods = ['spearman', 'pearson', 'kendall']
+    
+    if method not in methods:
+        raise ValueError(f'Supported correlation analysis methods are [{methods}]!')
+    
+    if not obj.label_feature:
+        raise ValueError(f'BioFlowMLClass instance must have label_feature property set!')
+    
+    
+    df = obj.df.copy()
+    df = df.drop(columns=obj.exclude_features)
+    
+    if control_label and case_label != None:
+        # Filter only case and control samples when control label provided
+        controls_df = df[df[obj.label_feature] == control_label]
+        cases_df = df[df[obj.label_feature] == case_label]
+        df = pd.concat([controls_df, cases_df], ignore_index=True)
+    
+    # Compute correlations between features and label
+    correlation_with_target = df.corr(method=method)[obj.label_feature]
 
+    # Sort correlation values by absolute value, strongest correlations at the top
+    sorted_correlation = correlation_with_target.abs().sort_values(ascending=False)
 
-# @log_errors_and_warnings
-# def plot_correlations_with_target(df: pd.DataFrame, feature_set_name: str, target_feature_name: str, target_features: list = [],
-#                                   exclude_features: list = [], control_feature_name: str = None, trim_mb_feature_names: bool = False, 
-#                                   top_n: int = 15, method: str = 'spearman', lang: str = 'en'):
-#     """
-#     TODO: p-values un būtiskumi?
-#     if control feature provided (control_feature_name) then correlation method 'cases-vs-controls' applied
-#     when not ptovided, correlation method 'all-samples' applied
-#     """
-#     # In the case control name is provided and 
-#     # 'cases-vs-controls'correlation type applied as a result
-#     if control_feature_name:
-#         # Skip if control-vs-control
-#         if target_feature_name.lower() == control_feature_name.lower():
-#             return
-#         else:
-#             # Filter only case and control samples
-#             controls_df = df[df[control_feature_name] == 1]
-#             cases_df = df[df[target_feature_name] == 1]
-#             df = pd.concat([controls_df, cases_df], ignore_index=True)
-    
-#     logger = log.get_logger('main')
-#     logger.debug(f'Plotting top {top_n} correlations for target: {target_feature_name}')
-    
-#     translations = tr.load_translations(lang)
-    
-#     # Prepare feature list for dropping
-#     # For multi-class cases should drop other labels and leave only one target label 
-#     # to avoid label correlationss
-#     # For binary class cases targets list is empty
-#     features_to_drop = target_features.copy()
-#     if features_to_drop and target_feature_name in features_to_drop:
-#         features_to_drop.remove(target_feature_name)
-#     features_to_drop.extend(exclude_features)
-    
-#     # Filter the list of labels to drop only existing column names
-#     confirmed_features_to_drop = [feature for feature in features_to_drop if feature in df.columns]
-#     df = df.drop(columns=confirmed_features_to_drop)
-    
-#     # Output directory
-#     out_dir_name = os.path.join(io.get_absolute_path('data/processed/correlations', create_dir=True), f'{feature_set_name}')
-    
-#     # Result logger
-#     correlation_type = 'cases-vs-controls' if control_feature_name else 'all-samples'
-#     out_log_path = os.path.join(out_dir_name, f'{target_feature_name}_correlations_top_{top_n}_{correlation_type}.log')
-#     corr_logger = log.get_logger(f'correlation_analysis_{feature_set_name}_{target_feature_name}', out_log_path)
-#     corr_logger.debug(f'Features excluded from correlation analysis: {utils.serialize_list(confirmed_features_to_drop)}')
-    
-#     # Compute correlations between features and target column
-#     # Spearman does not assume linearity, making it more suitable for detecting non-linear associations between features
-#     # Spearman correlation is less sensitive to outliers compared to Pearson correlation
-#     # Spearman correlation does not assume that the data follows a normal distribution
-#     correlation_with_target = df.corr(method='spearman')[target_feature_name]
+    # Filter features with strongest correlations
+    top_correlations = sorted_correlation.head(n_features + 1)
+    top_feature_names = top_correlations.index.tolist()
 
-#     # Sort correlation values by absolute value, strongest correlations at the top
-#     sorted_correlation = correlation_with_target.abs().sort_values(ascending=False)
-
-#     # Filter features with strongest correlations
-#     top_correlations = sorted_correlation.head(top_n + 1)
-#     top_feature_names = top_correlations.index.tolist()
-
-#     # Compute the full correlation matrix based on selected features
-#     filtered_correlation_matrix = df[top_feature_names].corr(method='spearman')
+    # Compute the full correlation matrix based on selected features
+    filtered_correlation_matrix = df[top_feature_names].corr(method='spearman')
     
-#     if trim_mb_feature_names:
-#         short_column_names = {col: mb.trim_id(col) for col in top_feature_names}
-#         top_feature_names = list(short_column_names.values())
-#         # Log full and shortened feature names
-#         corr_logger.debug(utils.serialize_dict(short_column_names))
-    
-#     # Translate the value associated with the first key (label)
-#     if lang == 'lv':
-#         top_feature_names[0] = tr.translate(f"cohort.{target_feature_name}", translations)
-    
-#     # Plot the correlation heatmap
-#     plt.figure(figsize=(32, 25))  # Adjust size as needed
-#     sns.set_context("notebook", font_scale=2)
-#     cmap = sns.diverging_palette(220, 20, l=70, as_cmap=True)
-#     sns.heatmap(filtered_correlation_matrix, cmap=cmap, annot=True, xticklabels=top_feature_names, yticklabels=top_feature_names)
-#     translated_target_feature_name = tr.translate(f"cohort.{target_feature_name}", translations) if lang == "lv" else target_feature_name
-#     plt.title(f'{tr.translate("correlation_heatmap.title", translations)} "{translated_target_feature_name}"', fontsize=30, pad=20)
-#     plt.xticks(rotation=90, fontsize = 30)
-#     plt.yticks(fontsize = 30)
-#     plt.tight_layout()
+    return filtered_correlation_matrix
 
-#     # Save the plot
-#     out_file_path = os.path.join(out_dir_name, f'{target_feature_name}_correlations_top_{top_n}_{feature_set_name}_spearman_{correlation_type}.png')
-#     plt.savefig(out_file_path, dpi=250)
-#     plt.close()
+def plot_correlations(obj: BioFlowMLClass, case_label: str = None, control_label: str = None, method: str = 'spearman', n_features=15):
+    """
+    Plot a heatmap of correlation matrix between features a label of a BioFlowMLClass instance containing pandas DataFrame property.
 
+    Args:
+        obj (BioFlowMLClass): An instance of BioFlowMLClass containing the dataset.
+        case_label (str, optional): Label indicating the cases in the dataset. Defaults to None.
+        control_label (str, optional): Label indicating the controls in the dataset. Defaults to None.
+        method (str, optional): Method for computing correlations. Supported methods are 'spearman', 'pearson', and 'kendall'. Defaults to 'spearman'.
+        n_features (int, optional): Number of top correlated features to include in the output. Defaults to 15.
 
-# @timeit
-# def check_all_correlations(relative_data_path: str, target_features: list, exclude_features: list = None, control_feature_name: str = None, lang = 'en'):
+    Example:
+        ```python
+        plot_correlations(obj, 'case', 'control')
+        ```
+    """
+    methods = ['spearman', 'pearson', 'kendall']
     
-#     feature_set_name = relative_data_path.split('/')[-1].split('.')[0]
+    if method not in methods:
+        raise ValueError(f'Supported correlation analysis methods are [{methods}]!')
+    
+    if not obj.label_feature:
+        raise ValueError(f'BioFlowMLClass instance must have label_feature property set!')
+    
+    correlation_strategy = 'binary' if (control_label and case_label != None) else 'ovr'
+    
+    # Get the fitered correlation matrix
+    filtered_correlation_matrix = get_correlations(obj, case_label, control_label, method, n_features)
+    top_feature_names = filtered_correlation_matrix.columns
+    
+    # Trim all feature names to a maximum of 30 characters
+    top_feature_names = [s[:30] for s in top_feature_names]
+    
+    # Load plot label translation for plots
+    translations = tr.load_translations(obj.lang)
+    
+    encoded_features = obj.get_encoded_features()
+    encoded_label_features = encoded_features[obj.label_feature]
+    
+    target_name = encoded_label_features[case_label] if correlation_strategy == 'binary' else obj.label_feature
+    top_feature_names[0] = target_name
+    
+    logger = get_main_logger()
+    logger.info(f'Plotting top {n_features} correlations with target: {target_name}')
+    
+    # Translate the value associated with the first key (label)
+    if obj.lang == 'lv':
+        translated_label = tr.translate(f"cohort.{target_name}", translations)
+        if translated_label:
+            top_feature_names[0] = translated_label
+    
+    # Plot the correlation heatmap
+    plt.figure(figsize=(32, 25))  # Adjust size as needed
+    sns.set_context("notebook", font_scale=2)
+    cmap = sns.diverging_palette(220, 20, l=70, as_cmap=True)
+    sns.heatmap(filtered_correlation_matrix, cmap=cmap, annot=True, xticklabels=top_feature_names, yticklabels=top_feature_names)
+    title = f'{tr.translate("correlation_heatmap.title", translations)} "{top_feature_names[0]}"' if correlation_strategy == 'binary' else tr.translate("correlation_heatmap.title", translations)
+    plt.title(title, fontsize=30, pad=20)
+    plt.xticks(rotation=90, fontsize = 30)
+    plt.yticks(fontsize = 30)
+    plt.tight_layout()
+    
+    # Save the plot
+    l = top_feature_names[0].replace(' ','_')
+    out_dir_name = IOHandler.get_absolute_path(f'../results/feature_analysis/correlations/{obj.out_dir_name}/{correlation_strategy}', create_dir=True)
+    out_file_path = os.path.join(out_dir_name, f'{l}_top_{n_features}_{method}_{correlation_strategy}_correlations.png')
+    plt.savefig(out_file_path, dpi=250)
+    plt.close()
 
-#     logger = log.get_logger('main')
-#     logger.debug('-' * 20 + f' STARTING CORRELATION ANALYSIS FOR {feature_set_name} FEATURES ' + '-' * 20)
+@timeit
+@log_execution
+@log_errors_and_warnings
+def check_correlations(obj: BioFlowMLClass, method='binary'):
+    """
+    Check and plot correlation heatmaps between features and label of a BioFlowMLClass instance containing pandas DataFrame.
+
+    Args:
+        obj (BioFlowMLClass): An instance of BioFlowMLClass containing the dataset.
+        method (str, optional): Method for correlation analysis. Supported methods are 'binary' and 'ovr'. Defaults to 'binary'.
+
+    Example:
+        ```python
+        check_correlations(obj, 'ovr')
+        ```
+    """
+    methods = ['binary', 'ovr']
+    if method not in methods:
+        raise ValueError(f'Supported correlation analysis methods are [{methods}]!')
     
-#     # Read data
-#     df = pd.read_csv(io.get_absolute_path(relative_data_path))
+    if not obj.label_feature:
+        raise ValueError(f'BioFlowMLClass instance must have label_feature property set!')
     
-#     Parallel(n_jobs=-1)(
-#         delayed(plot_correlations_with_target)(
-#             df,
-#             feature_set_name,
-#             target,
-#             target_features,
-#             exclude_features,
-#             control_feature_name, # if None then 'all-samples', othervise 'cases-vs-controls'
-#             lang = lang
-#         )
-#         for target in target_features
-#     )
-        
-#     logger.debug('-' * 20 + f' FINISHED CORRELATION ANALYSIS FOR {feature_set_name} FEATURES ' + '-' * 20)
+    # Check if results already present
+    directory_path = f'results/feature_analysis/correlations/{obj.out_dir_name}/{method}'
+    if os.path.isdir(directory_path):
+        print(f'Directory [{directory_path}] already exists!')
+        user_input = input(f'Skip [{obj.out_dir_name}] correlation plotting (y/n)? ')
+        if user_input.lower() != 'n':
+            return
+    
+    labels_encoded  = obj.df[obj.label_feature].unique()
+    labels = obj.get_encoded_features()[obj.label_feature]
+    control_label_encoded = labels.index(obj.control_label) if (method == 'binary' and obj.control_label) else None
+    
+    if control_label_encoded:
+        Parallel(n_jobs=-1)(
+            delayed(plot_correlations)(
+                obj,
+                l,
+                control_label_encoded # if None then 'multi-class', otherwise 'cases-vs-controls'
+            )
+            for l in labels_encoded if l != control_label_encoded
+        )
+    else:
+        plot_correlations(obj)
+    

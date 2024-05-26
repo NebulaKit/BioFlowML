@@ -11,6 +11,7 @@ from sklearn.pipeline import Pipeline
 from joblib import dump, load
 import pandas as pd
 import numpy as np
+import json
 import os
 
 
@@ -649,7 +650,7 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
                 case '1': 
                     features_to_label_encode.append(f)
                     # Save categorical values for later reference in the same order they will be encoded
-                    obj.set_encoded_features(key=f, value=sorted(row['Unique Values']))
+                    obj.set_encoded_feature(key=f, value=sorted(row['Unique Values']))
                 case '2': features_to_one_hot_encode_1.append(f)
                 case '3': features_to_one_hot_encode_2.append(f)
                 case '4': features_to_drop.append(f)
@@ -675,15 +676,14 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     ])
     
     # Save the pipeline
-    path = IOHandler.get_absolute_path('src/preprocessing/pipelines', create_dir=True)
+    path = IOHandler.get_absolute_path('preprocessing/pipelines', create_dir=True)
     file_path = os.path.join(path, f'{obj.out_dir_name}_preprocessing_pipeline.joblib')
     dump(pipeline, file_path)
     
-    # Save label encoded feature names and encoding
-    encoded_features = serialize_dict(obj.get_encoded_features())
-    file_path = os.path.join(path, f'{obj.out_dir_name}_encoded_features.txt')
-    with open(file_path, 'w') as file:
-        file.write(encoded_features)
+    # Save label encoded feature names to a JSON file
+    file_path = os.path.join(path, f'{obj.out_dir_name}_encoded_features.json')
+    with open(file_path, 'w') as json_file:
+        json.dump(obj.get_encoded_features(), json_file, indent=4)
     
     obj.log_obj()
     return pipeline
@@ -699,12 +699,17 @@ def get_preprocessing_pipeline(obj: BioFlowMLClass, sort_by=None):
     # Check if pipeline saved
     directory_path = "src/preprocessing/pipelines"
     pipeline_file_name = f'{obj.out_dir_name}_preprocessing_pipeline.joblib'
+    encoded_feature_file_name = f'{obj.out_dir_name}_encoded_features.json'
     
     if os.path.isdir(directory_path):
-        if pipeline_file_name in os.listdir(directory_path):
-            # TODO: prompt user before load
-            # TODO: retreive encoded features for loaded pipelines somehow
+        if pipeline_file_name in os.listdir(directory_path) and encoded_feature_file_name in os.listdir(directory_path):
+            # Load pipeline
             pipeline = load(f'{directory_path}/{pipeline_file_name}')
+            
+            # Load encoded feature names from the JSON file
+            with open(f'{directory_path}/{encoded_feature_file_name}', 'r') as json_file:
+                data_loaded = json.load(json_file)
+                obj.set_encoded_features(data_loaded)
 
     if not pipeline:
         pipeline = start_pipeline_wizard(obj)

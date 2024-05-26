@@ -7,7 +7,8 @@ project_root = os.path.abspath(os.path.join(script_dir, '..'))
 sys.path.append(project_root)
 
 from src.BioFlowMLClass import BioFlowMLClass
-from src.feature_analysis.distributions import check_all_transformations
+from src.feature_analysis.distributions import check_transformations
+from src.feature_analysis.correlations import check_correlations
 from src.preprocessing.microbiome_preprocessing import  merge_with_metadata, aggregate_taxa_by_level
 from src.preprocessing import get_preprocessing_pipeline, get_numerical_feature_pipeline
 from src.utils.IOHandler import IOHandler
@@ -52,25 +53,15 @@ def main():
     aggregate_taxa_by_level(obj_mb, 'g', trim_taxa=True)
 
     # Chech data distributions for all microbial features
-    check_all_transformations(obj_mb)
+    check_transformations(obj_mb)
     
     # Normalize and scale numeric features
-    # normalization_pipeline = get_numerical_feature_pipeline(obj_mb.df, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
-    # obj_mb.df = normalization_pipeline.fit_transform(obj_mb.df)
-    
-    # obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}.csv', index=False)
-    
-    # Select numerical columns
-    # df = pd.read_csv('data/processed/microbiome_with_labels.csv')
-    # numerical_columns = df.select_dtypes(include=['number']).columns
-    # numerical_features = numerical_columns.tolist()
-    # num_imputer = NumericalImputer(features_to_impute=numerical_features, label_feature='subject_group')
-    # df_imputed = num_imputer.transform(df)
-    # df_imputed.to_csv(f'data/processed/microbiome_with_labels_imputed.csv', index=False)
-    
-    # Normalize and scale features
+    normalization_pipeline = get_numerical_feature_pipeline(obj_mb.df, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
+    obj_mb.df = normalization_pipeline.fit_transform(obj_mb.df)
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_normalized.csv', index=False)
     
     # Correlation analysis
+    check_correlations(obj_mb)
     
     # Differential distribution analysis
     

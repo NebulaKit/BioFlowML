@@ -16,7 +16,7 @@
         "y_axis": "Value"
     },
     "correlation_heatmap": {
-        "title": "Correlation heatmap with target column"
+        "title": "Correlation heatmap with class label"
     },
     "result_labels": {
         "accuracy": "Accuracy",
@@ -24,6 +24,7 @@
         "recall": "Recall"
     },
     "cohort": {
+        "subject_group": "Subject group",
         "Liver_disease": "Liver disease",
         "Control": "Control",
         "Vegan": "Vegan",

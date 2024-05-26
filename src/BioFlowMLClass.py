@@ -83,8 +83,12 @@ class BioFlowMLClass:
 
         
     # Setter methods for internal properties
-    def set_encoded_features(self, key, value):
+    def set_encoded_feature(self, key, value):
         self._encoded_features[key] = value
+        
+    def set_encoded_features(self, features:dict):
+        for key, value in features.items():
+            self.set_encoded_feature(key, value)
         
     def set_label_feature(self, label_feature, control_label=None):
         

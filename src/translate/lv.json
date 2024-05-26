@@ -16,7 +16,7 @@
         "y_axis": "Vērtība"
     },
     "correlation_heatmap": {
-        "title": "Korelāciju siltuma karte ar mērķa pazīmi"
+        "title": "Korelāciju siltuma karte ar klases pazīmi"
     },
     "result_labels": {
         "accuracy": "Akurātums",
@@ -24,6 +24,7 @@
         "recall": "Pārklājums"
     },
     "cohort": {
+        "subject_group": "Klase",
         "Liver_disease": "Aknu slimnieks",
         "Control": "Kontroles grupa",
         "Vegan": "Vegāns",
