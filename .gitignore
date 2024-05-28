@@ -43,14 +43,17 @@ docker-compose.yml
 *.tar
 
 # Ignore project-specific directories
-data/raw/*
+data/raw
 data/processed/*
 data/FLAML
+data/test
 src/preprocessing/pipelines
 examples/taxonomic_raw_data_preparation.py
 examples/generate_synthetic_data.py
 src/sdv_utils
 results
+examples/taxonomic_data_preparation.py
+examples/run_test_data.py
 
 # Ignore log files
 *.log

@@ -51,6 +51,7 @@ def main():
     # Aggregate species data to specific taxonomic level
     # and trim taxa names
     aggregate_taxa_by_level(obj_mb, 'g', trim_taxa=True)
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}.csv', index=False)
 
     # Chech data distributions for all microbial features
     check_transformations(obj_mb)
@@ -61,7 +62,7 @@ def main():
     obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_normalized.csv', index=False)
     
     # Correlation analysis
-    check_correlations(obj_mb)
+    # check_correlations(obj_mb)
     
     # Differential distribution analysis
     
