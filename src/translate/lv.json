@@ -44,7 +44,7 @@
         "Decision Tree": "Lēmumu koks",
         "Random Forest": "Nejaušais mežs",
         "Extra Trees": "Papildu koki",
-        "XGBoost": "XGBoost",
+        "XGBoost": "Ekstrēmais gradienta pastiprinājums",
         "Multi-layer Perceptron": "Daudzslāņu preceptrons"
     },
     "conf_matrix":{

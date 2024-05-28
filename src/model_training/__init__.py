@@ -12,6 +12,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_curve, auc
 from src.BioFlowMLClass import BioFlowMLClass
 import src.translate as tr
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -346,7 +348,7 @@ def plot_confusion_matrix(confusion_matrix, classes, output_dir, obj:BioFlowMLCl
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=9)
     ax.set_yticklabels(ax.get_yticklabels(), fontsize=9)
     
-    plt.title(f'{clf_name}: {conf_matrix_title}')
+    plt.title(f'{clf_name}: \n{conf_matrix_title}')
     plt.xlabel(tr.translate(f"conf_matrix.xlabel", translations))
     plt.ylabel(tr.translate(f"conf_matrix.ylabel", translations))
     plt.tight_layout()

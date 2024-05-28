@@ -21,7 +21,7 @@ def main():
     # Promt user to reset logfile if exit
     IOHandler.reset_logfile()
     
-    # Read feature matrix
+    # Read metadata feature matrix
     df = pd.read_csv('data/synthetic/metadata.csv')
     
     # Create and initialize BioFlowML class instance
@@ -36,7 +36,7 @@ def main():
     pipeline = get_preprocessing_pipeline(obj, sort_by='sample_id')
     obj.df = pipeline.fit_transform(obj.df)
     
-    # Check data distributions for all metadata features
+    # Check data transformation distributions for all metadata features
     check_transformations(obj)
     
     # Normalize and scale numeric features
