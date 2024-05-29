@@ -2,7 +2,7 @@
   <img src="BioFlowML.png" alt="BioFlowML Logo" width="200" height="200">
 </div>
 
-# Project Name
+# BioFlowML
 
 Brief project description goes here.
 
