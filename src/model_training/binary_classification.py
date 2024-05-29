@@ -78,7 +78,7 @@ def train_binary_classifiers(obj: BioFlowMLClass):
             best_params = grid_search.best_params_
             clf_file_name = classifier_name.lower().replace(' ','_')
             out_class_name = value.lower().replace(' ','_')
-            params_out_path = f'{output_dir}/params/{clf_file_name}_{out_class_name}_vs_controls_best_params.json'
+            params_out_path = f'{output_dir}/params/{clf_file_name}_{out_class_name}_best_params.json'
             save_json(best_params, params_out_path)
 
             # Cross-validate

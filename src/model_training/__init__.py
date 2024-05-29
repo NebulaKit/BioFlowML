@@ -256,7 +256,7 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     case_name = case_name.lower() if case_name else None
     out_dir = f'{output_dir}/roc_curves/'
     os.makedirs(out_dir, exist_ok=True)
-    fig_path = f'{out_dir}/{clf_name}_roc_curves.png' if is_multiclass else f'{out_dir}/{clf_name}_{case_name}_vs_controls_roc_curves.png'
+    fig_path = f'{out_dir}/{clf_name}_roc_curves.png' if is_multiclass else f'{out_dir}/{clf_name}_{case_name}_roc_curves.png'
     plt.savefig(fig_path, dpi=300)
     plt.close()
 

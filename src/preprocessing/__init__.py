@@ -6,11 +6,13 @@ from src.utils import serialize_dict
 from src.BioFlowMLClass import BioFlowMLClass
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import StandardScaler, RobustScaler, PowerTransformer, OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, QuantileTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from joblib import dump, load
 import pandas as pd
 import numpy as np
+import copy
 import json
 import os
 
@@ -410,17 +412,33 @@ class CustomNormalizer(BaseEstimator, TransformerMixin):
 
         # Apply normalization to the numerical features
         for col in self.numeric_features:
-            if self.method == 'log2':
-                X_transformed[col] = np.log2(1 + X_transformed[col])
-            elif self.method == 'log10':
-                X_transformed[col] = np.log10(1 + X_transformed[col])
-            elif self.method == 'log1p':
-                X_transformed[col] = np.log1p(X_transformed[col])
-            elif self.method == 'yeo-johnson':
-                pt = PowerTransformer(method='yeo-johnson')
-                X_transformed[col] = pt.fit_transform(X_transformed[[col]])
-            else:
-                raise ValueError("Invalid normalization method. Please choose 'log2', 'log10', 'log1p', or 'yeo-johnson'.")
+            match self.method:
+                case 'log2':
+                    X_transformed[col] = np.log2(1 + X_transformed[col])
+                case 'log10':
+                    X_transformed[col] = np.log10(1 + X_transformed[col])
+                case 'log1p':
+                    X_transformed[col] = np.log1p(X_transformed[col])
+                case 'minmax':
+                    scaler = MinMaxScaler()
+                    X_transformed[col] = scaler.fit_transform(X_transformed[[col]])
+                case 'standard':
+                    scaler = StandardScaler()
+                    X_transformed[col] = scaler.fit_transform(X_transformed[[col]])
+                case 'robust':
+                    scaler = RobustScaler()
+                    X_transformed[col] = scaler.fit_transform(X_transformed[[col]])
+                case 'maxabs':
+                    scaler = MaxAbsScaler()
+                    X_transformed[col] = scaler.fit_transform(X_transformed[[col]])
+                case 'quantile':
+                    transformer = QuantileTransformer()
+                    X_transformed[col] = transformer.fit_transform(X_transformed[[col]])
+                case 'power':
+                    transformer = PowerTransformer(method='yeo-johnson')
+                    X_transformed[col] = transformer.fit_transform(X_transformed[[col]])
+                case _:
+                    raise ValueError("Invalid numerical feature transformation normalization method!")
         
         return X_transformed
 
@@ -526,78 +544,62 @@ def prompt_to_select_features_values_to_drop(df):
     
     return features_values_to_drop
    
-def get_numerical_feature_pipeline(df: pd.DataFrame, norm_method='yeo-johnson', scaler_type='robust', exclude_features: list = None):
+def preprocess_numerical_features(obj: BioFlowMLClass, norm_method='standard', exclude_binary=True, exclude_features: list = None):
     """
-    Create a preprocessing pipeline for numerical features in a DataFrame.
+    Transform numerical features in BioFlowML class instance df pandas DataFrame property.
 
     Parameters:
     - df (pd.DataFrame): Input DataFrame containing the dataset.
     - norm_method (str, optional): Normalization method to be applied. 
-                                   Options: 'log2', 'log1p', 'yeo-johnson'. Defaults to 'yeo-johnson'.
-    - scaler_type (str, optional): Type of scaler to be used. 
-                                   Options: 'standard', 'robust'. Defaults to 'robust'.
+                                   Options: 'log10', 'minmax', 'standard', 'robust', 'maxabs', 'power', 'quantile'. 
+                                   Defaults to 'standard'.
+    - exclude_binary (boolean, optional): Boolean to exclude binary features from transforming when set to True.
+                                   Defaults to 'True'.
     - exclude_features (list, optional): List of feature names to exclude from preprocessing. Default is None.
 
     Returns:
-    - pipeline (Pipeline): Preprocessing pipeline for numerical features.
+    - obj (BioFlowML): BioFlowML class instance with transformed numerical features in df pandas DataFrame property.
 
     Notes:
-    - This method creates a preprocessing pipeline for numerical features in the input DataFrame.
+    - This method creates a preprocessing pipeline for numerical features in the BioFlowML instance DataFrame.
     - Numeric features are automatically determined from the DataFrame by selecting columns with numeric data types.
-    - Binary features (containing only 0s and 1s) are automatically excluded from preprocessing.
+    - Binary features (containing only 0s and 1s) are excluded from preprocessing if exclude_binary set to True.
     - Any features specified in the `exclude_features` list are also excluded from preprocessing.
-    - The pipeline includes normalization and scaling steps for numeric features.
-    - Normalization is performed using the specified method ('log2', 'log1p', 'yeo-johnson').
-    - Scaling is performed using the specified scaler type ('standard', 'robust').
-    - The pipeline preserves the remaining non-numeric features ('remainder'='passthrough').
+    - Transformation of features is performed using the specified method ('log10', 'minmax', 'standard', 'robust',
+    'maxabs', 'power', 'quantile').
+    - Copy of BioFlowML class instance with transformed numerical features is returned.
 
     Example:
     ```python
-    # Create preprocessing pipeline
-    pipeline = get_numerical_feature_pipeline(df, norm_method='log2', scaler_type='standard', exclude_features=['feature1', 'feature2'])
-    
-    # Fit and transform the pipeline on training data
-    X_train_processed = pipeline.fit_transform(X_train)
-    
-    # Transform the pipeline on test data
-    X_test_processed = pipeline.transform(X_test)
+    obj_transformed = get_numerical_feature_pipeline(obj, 
+                                                    norm_method='log2', 
+                                                    exclude_features=['feature1', 'feature2'], 
+                                                    exclude_binary=False)
     ```
     """
+    # Create a deep copy of the original object
+    obj_copy = copy.deepcopy(obj)
+    
     # Automatically determine numeric features
-    numeric_features = df.select_dtypes(include=['number']).columns.tolist()
+    numeric_features = obj_copy.df.select_dtypes(include=['number']).columns.tolist()
+    
     # Exclude binary features from numeric features
-    numeric_features = [col for col in numeric_features if col not in get_binary_features(df)]
+    if exclude_binary:
+        numeric_features = [col for col in numeric_features if col not in get_binary_features(obj_copy.df)]
+    
     # Exclude specified features if provided
     if exclude_features is not None:
         numeric_features = [col for col in numeric_features if col not in exclude_features]
 
     # Create pipeline for numeric features
     numeric_pipeline = Pipeline([
-        # ('scaler', CustomScaler(scaler_type=scaler_type, numeric_features=numeric_features)),
-        ('normalizer', CustomNormalizer(method=norm_method, numeric_features=numeric_features)),
-        
-    ])
-    return numeric_pipeline
-
-def create_preprocessing_pipeline_OLD():
-    
-    # pipeline = Pipeline([("rowdropper", RowDropper(feature_name='subject_group', value_to_drop='OTHER')),
-    #                 ("featureencoder", FeatureOneHotEncoder(features_to_encode=['subject_group','sex'])),
-    #                 ("binaryencoder", FeatureBinaryEncoder(features_to_encode=['have_animals_or_pets','high_blood_pressure_ever', 'darbs_nakti_grupa'])),
-    #                 ("customBinaryEncoder", CustomBinaryEncoder(features_to_encode=['ethnicity','energijas_atbilst_gr_0','izglitiba_grupas','vit_d_sufficiency'], positive_value=['Latvian','below_or_ok','higher_ed','Sufficient'], negative_value=['OTHER','too_much_energy','below_higher_ed','Insufficient'], new_column_names=['ethnicity_latvian','energijas_atbilst_gr_0','izglitiba_grupas','vit_d_sufficiency'])),
-    #                 #("endTrimmer", EndTrimmer(features_to_trim=['fiber_sufficiency'])),
-    #                 ("numberExtractor", NumberExtractor(['fiber_sufficiency'])),
-    #                 ("intConverter", IntConverter(features_to_convert=['fiber_sufficiency','sample_id'])),
-    #                 ("featuredropper", FeatureDropper(features_to_drop=['seq_batch','denoised_reads','ethnicity','subject_group','sex']))])
-    
-    pipeline = Pipeline([
-        ("rowdropper", RowDropper({'subject_group':['OTHER']})),
-        ("featureencoder1", FeatureOneHotEncoder(['subject_group','sex'])),
-        ("featureencoder2", FeatureOneHotEncoder(['have_animals_or_pets','high_blood_pressure_ever', 'darbs_nakti_grupa','ethnicity','energijas_atbilst_gr_0','izglitiba_grupas','vit_d_sufficiency'], prefix_with_feature_name=True)),
-        ("numberExtractor", NumberExtractor(['fiber_sufficiency','seq_batch']))
+        ('normalizer', CustomNormalizer(method=norm_method, numeric_features=numeric_features))
     ])
     
-    return pipeline
+    # Transform pandas Dataframe
+    obj_copy.df = numeric_pipeline.fit_transform(obj_copy.df)
+    
+    return obj_copy
 
 @log_errors_and_warnings
 def start_pipeline_wizard(obj: BioFlowMLClass):
@@ -629,23 +631,27 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
         for _, row in categorical_features_info.iterrows():
             f = row['Feature']
             option = -1
-            options = ['1','2','3','4']
-            while option not in options:
-                prompt_text = (
-                    f"How to transform the categorical values of '{f}' feature? "
-                    f"Values: {row['Unique Values']}\n"
-                    "1 - Label encode (one feature)\n"
-                    "2 - One-hot encode (prefix with feature name)\n"
-                    "3 - One-hot encode (use value only; Not recomminded if values are not unique across different features!)\n"
-                    "4 - Drop feature\n"
-                )
-                if obj.df[f].str.replace(r'\D', '', regex=True).str.isnumeric().any():
-                    prompt_text += f'5 - Extract numerical data\n'
-                    options.append('5')
-    
-                prompt_text += 'Selected option: '
-                option = input(prompt_text)
+            if f != obj.label_feature:                
+                options = ['1','2','3','4']
+                while option not in options:
+                    prompt_text = (
+                        f"How to transform the categorical values of '{f}' feature? "
+                        f"Values: {row['Unique Values']}\n"
+                        "1 - Label encode (one feature)\n"
+                        "2 - One-hot encode (prefix with feature name)\n"
+                        "3 - One-hot encode (use value only; Not recomminded if values are not unique across different features!)\n"
+                        "4 - Drop feature\n"
+                    )
+                    if obj.df[f].str.replace(r'\D', '', regex=True).str.isnumeric().any():
+                        prompt_text += f'5 - Extract numerical data\n'
+                        options.append('5')
         
+                    prompt_text += 'Selected option: '
+                    option = input(prompt_text)
+            else:
+                option = '1'
+                
+            
             match option:
                 case '1': 
                     features_to_label_encode.append(f)
@@ -659,7 +665,6 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     categorical_features = get_categorical_features(obj.df)
     numerical_features = [x for x in obj.df.columns if x not in categorical_features]
     
-    # TODO: should impute by category (e.g. Control, Liver_disease)
     pipeline = Pipeline([
         # Impute
         ("categoricalImputer", CategoricalImputer(categorical_features, obj.label_feature)),
@@ -688,18 +693,21 @@ def start_pipeline_wizard(obj: BioFlowMLClass):
     obj.log_obj()
     return pipeline
 
-def get_preprocessing_pipeline(obj: BioFlowMLClass, sort_by=None):
+def encode_and_impute_features(obj: BioFlowMLClass, sort_by=None):
+    
+    # Create a deep copy of the original object
+    obj_copy = copy.deepcopy(obj)
     
     if sort_by:
-        if sort_by in obj.df.columns:
-            obj.df = obj.df.sort_values(by=sort_by)
+        if sort_by in obj_copy.df.columns:
+            obj_copy.df = obj_copy.df.sort_values(by=sort_by)
     
     pipeline=None
     
     # Check if pipeline saved
     directory_path = "src/preprocessing/pipelines"
-    pipeline_file_name = f'{obj.out_dir_name}_preprocessing_pipeline.joblib'
-    encoded_feature_file_name = f'{obj.out_dir_name}_encoded_features.json'
+    pipeline_file_name = f'{obj_copy.out_dir_name}_preprocessing_pipeline.joblib'
+    encoded_feature_file_name = f'{obj_copy.out_dir_name}_encoded_features.json'
     
     if os.path.isdir(directory_path):
         if pipeline_file_name in os.listdir(directory_path) and encoded_feature_file_name in os.listdir(directory_path):
@@ -709,10 +717,12 @@ def get_preprocessing_pipeline(obj: BioFlowMLClass, sort_by=None):
             # Load encoded feature names from the JSON file
             with open(f'{directory_path}/{encoded_feature_file_name}', 'r') as json_file:
                 data_loaded = json.load(json_file)
-                obj.set_encoded_features(data_loaded)
+                obj_copy.set_encoded_features(data_loaded)
 
     if not pipeline:
-        pipeline = start_pipeline_wizard(obj)
+        pipeline = start_pipeline_wizard(obj_copy)
+        
+    obj_copy.df = pipeline.fit_transform(obj_copy.df)
     
-    return pipeline
+    return obj_copy
     

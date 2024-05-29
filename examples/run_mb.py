@@ -10,11 +10,10 @@ from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
 from src.preprocessing.microbiome_preprocessing import  merge_with_metadata, aggregate_taxa_by_level
-from src.preprocessing import get_preprocessing_pipeline, get_numerical_feature_pipeline
+from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
 from src.model_training.binary_classification import train_binary_classifiers
 from src.model_training.multiclass_classification import train_multiclass_classifiers
 from src.utils.IOHandler import IOHandler
-from src.utils import serialize_dict
 import pandas as pd
 
 
@@ -28,7 +27,7 @@ def main():
     # Create and initialize BioFlowML class instance for the microbiome data
     id_column = 'sample_id'
     obj_mb = BioFlowMLClass(df_mb,
-                            out_dir_name = 'microbiome', # same as dataset name
+                            out_dir_name = 'microbiome',
                             exclude_features = [id_column],
                             lang = 'lv')
     
@@ -50,8 +49,7 @@ def main():
     obj_mb.set_label_feature(label_feature, control_label)
     
     # Preprocess non-numerical features and missing values
-    pipeline = get_preprocessing_pipeline(obj_mb, sort_by='sample_id')
-    obj_mb.df = pipeline.fit_transform(obj_mb.df)
+    obj_mb = encode_and_impute_features(obj_mb, sort_by='sample_id')
     
     # Aggregate species data to specific taxonomic level
     # and trim taxa names
@@ -61,11 +59,11 @@ def main():
     check_transformations(obj_mb)
     
     # Normalize and scale numeric features
-    normalization_pipeline = get_numerical_feature_pipeline(obj_mb.df, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
-    obj_mb.df = normalization_pipeline.fit_transform(obj_mb.df)
+    method = 'quantile'
+    obj_mb = preprocess_numerical_features(obj_mb, norm_method=method, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
     
-    # Save normalized feature matrix as csv
-    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_normalized.csv', index=False)
+    # Save normalized feature matrix as csv if needed
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_{method}_transformed.csv', index=False)
     
     # Correlation analysis
     check_correlations(obj_mb)

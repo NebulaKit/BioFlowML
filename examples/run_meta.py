@@ -9,7 +9,7 @@ sys.path.append(project_root)
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
-from src.preprocessing import get_preprocessing_pipeline, get_numerical_feature_pipeline
+from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
 from src.model_training.binary_classification import train_binary_classifiers
 from src.model_training.multiclass_classification import train_multiclass_classifiers
 from src.utils.IOHandler import IOHandler
@@ -33,18 +33,17 @@ def main():
                     lang = 'lv')
     
     # Preprocess non-numerical features and missing values
-    pipeline = get_preprocessing_pipeline(obj, sort_by='sample_id')
-    obj.df = pipeline.fit_transform(obj.df)
+    obj = encode_and_impute_features(obj, sort_by='sample_id')
     
     # Check data transformation distributions for all metadata features
     check_transformations(obj)
     
     # Normalize and scale numeric features
-    normalization_pipeline = get_numerical_feature_pipeline(obj.df, exclude_features=obj.exclude_features + [obj.label_feature])
-    obj.df = normalization_pipeline.fit_transform(obj.df)
+    method = 'quantile'
+    obj = preprocess_numerical_features(obj, norm_method=method, exclude_features=obj.exclude_features + [obj.label_feature])
     
-    # Save normalized feature matrix as csv
-    obj.df.to_csv(f'data/processed/{obj.out_dir_name}_normalized.csv', index=False)
+    # Save normalized feature matrix as csv if needed
+    obj.df.to_csv(f'data/processed/{obj.out_dir_name}_{method}_transformed.csv', index=False)
     
     # Correlation analysis
     check_correlations(obj)
