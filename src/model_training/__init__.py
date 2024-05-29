@@ -45,7 +45,7 @@ def visualize_splits(train_counts, test_counts, output_path, obj:BioFlowMLClass,
         combined_df = pd.concat([combined_df, combined_fold.rename(fold + 1)], axis=1)
 
     # Use a Seaborn color palette
-    palette = sns.color_palette("colorblind", n_colors=len(groups)*2)  # Using the "husl" palette
+    palette = sns.color_palette("viridis", n_colors=len(groups)*2)
 
     # Plotting
     ax = combined_df.T.plot(kind='bar', figsize=(10, 5), color=palette, alpha=0.7)
@@ -237,8 +237,8 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     control_name = get_translation(obj, f'cohort.{obj.control_label}').lower()
     case_name_out = case_name_out.lower()
     title = (
-        f'{clf_name}: {get_translation(obj, f"roc_curve.title_multi")}' if is_multiclass else 
-        f'{clf_name}: {get_translation(obj, f"roc_curve.title_binary")} '
+        f'{clf_name}:\n {get_translation(obj, f"roc_curve.title_multi")}' if is_multiclass else 
+        f'{clf_name}:\n {get_translation(obj, f"roc_curve.title_binary")} '
         f'({case_name_out} {get_translation(obj, f"roc_curve.vs")} {control_name})'
     )
     plt.title(title)
@@ -268,6 +268,7 @@ def plot_all_classifier_results(metrics: dict, output_dir, obj: BioFlowMLClass, 
         for metric, values in metrics_dict.items()
         if metric != 'Confusion matrix'
     }
+    
     # Convert to DataFrame
     metrics_df = pd.DataFrame(filtered_metrics)
 
@@ -284,27 +285,36 @@ def plot_all_classifier_results(metrics: dict, output_dir, obj: BioFlowMLClass, 
     # Set up subplots
     fig, axes = plt.subplots(1, len(metrics), figsize=(16, 6), sharey=True)
     sns.set_context("notebook", font_scale=1.2)
-    colors = sns.color_palette("pastel", n_colors=10)
+    colors = sns.color_palette("viridis", n_colors=10)
 
     # Loop through classifiers and create boxplots
     for i, metric in enumerate(metrics):
-        sns.boxplot(data=metrics_df[metric], ax=axes[i], orient='h', palette=colors)
-        axes[i].set_title(metric_names[i])
+        with sns.plotting_context(font_scale=1.4):
+            sns.boxplot(data=metrics_df[metric], ax=axes[i], orient='h', palette=colors)
+        axes[i].set_title(metric_names[i], fontsize=10)
+
+        # Thinner axis ticks
+        axes[i].tick_params(axis='both', which='both', length=3, width=0.5)
+
+        # Add lighter and thinner borders
+        for spine in axes[i].spines.values():
+            spine.set_linewidth(0.5)
 
     # Add title
     if case_name:
         control_name_translated = get_translation(obj, f'cohort.{obj.control_label}').lower()
         case_name_translated = get_translation(obj, f'cohort.{case_name}').lower()
-        title = get_translation(obj, f'evaluation_metrics.title_binary')
+        title = get_translation(obj, 'evaluation_metrics.title_binary')
         fig.suptitle(f"{title} ({case_name_translated} {get_translation(obj, 'roc_curve.vs')} {control_name_translated})", fontsize=16)
     else:
-        title = get_translation(obj, f'evaluation_metrics.title_multi')
+        title = get_translation(obj, 'evaluation_metrics.title_multi')
         fig.suptitle(title, fontsize=16)
 
     # Adjust layout
     plt.tight_layout()
     plt.savefig(f'{output_dir}/cv_metrics.png', dpi=300)
     plt.close()
+
     
 def save_json(d: dict, out_file_path):
 
@@ -364,7 +374,7 @@ def plot_confusion_matrix(confusion_matrix, classes, output_dir, obj:BioFlowMLCl
 def plot_feature_importances(feature_importances:dict, feature_names, output_dir, obj: BioFlowMLClass, case_name=None):
     
     average_feature_importance = {get_translation(obj, f'classifiers.{classifier_name}'): np.mean(importance, axis=0) 
-                              for classifier_name, importance in feature_importances.items()}
+                                  for classifier_name, importance in feature_importances.items()}
 
     # Aggregate average feature importance across classifiers
     aggregate_feature_importance = np.zeros(len(feature_names))
@@ -381,17 +391,20 @@ def plot_feature_importances(feature_importances:dict, feature_names, output_dir
     top_features_df['Feature'] = top_feature_names
     top_features_df = top_features_df.set_index('Feature')
 
-    plt.figure(figsize=(15, 10))
-    
     # Define bar width and space between bars
     bar_width = 0.5
     bar_spacing = 0.2
 
+    plt.figure(figsize=(15, 10))
+
+    # Use a Seaborn color palette
+    palette = sns.color_palette("viridis", n_colors=len(average_feature_importance))
+
     # Visualize top 20 most important features by each classifier
-    ax = top_features_df.plot(kind='bar', stacked=True, cmap='viridis', width=bar_width, legend=False)
+    ax = top_features_df.plot(kind='bar', stacked=True, color=palette, width=bar_width, legend=False, alpha=0.7)
     plt.xlabel('')
     plt.ylabel(get_translation(obj, 'feature_graph.ylabel'), fontsize=10)
-    
+
     classification_translated = get_translation(obj, 'feature_graph.classification')
     if case_name:
         case_name_translated = get_translation(obj, f'cohort.{case_name}').lower()
@@ -410,11 +423,21 @@ def plot_feature_importances(feature_importances:dict, feature_names, output_dir
 
     legend_title = get_translation(obj, 'feature_graph.legend')
     plt.legend(title=legend_title, loc='upper right', fontsize=8, title_fontsize=8)
-    ax.xaxis.grid(False)  # Remove vertical grid lines
+    ax.xaxis.grid(False)
+
+    # Add thinner borders
+    for spine in ax.spines.values():
+        spine.set_linewidth(0.5)
+        
+    # Thinner axis ticks
+    ax.tick_params(axis='both', which='both', length=3, width=0.5)
+    
     plt.tight_layout()
 
     plt.savefig(f'{output_dir}/top_20_features_plot.png', dpi=300)
     plt.close()
+
+
 
 def get_classifiers():
     # Initialize classifiers with a dictionary of parameter grids for grid search
