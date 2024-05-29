@@ -1,4 +1,7 @@
-![Alt text](BioFlowML.png)
+<div align="center">
+  <img src="BioFlowML.png" alt="BioFlowML Logo" width="200" height="200">
+</div>
+
 # Project Name
 
 Brief project description goes here.
