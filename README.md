@@ -1,3 +1,4 @@
+![Alt text](BioFlowMl.png)
 # Project Name
 
 Brief project description goes here.
