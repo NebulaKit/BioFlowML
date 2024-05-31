@@ -9,8 +9,9 @@ sys.path.append(project_root)
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
-from src.preprocessing.microbiome_preprocessing import  merge_with_metadata, aggregate_taxa_by_level
+from src.preprocessing.microbiome_preprocessing import  merge_with_metadata
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
+from src.feature_selection import aggregate_taxa_by_level
 from src.model_training.binary_classification import train_binary_classifiers
 from src.model_training.multiclass_classification import train_multiclass_classifiers
 from src.utils.IOHandler import IOHandler
@@ -53,26 +54,27 @@ def main():
     
     # Aggregate species data to specific taxonomic level
     # and trim taxa names
-    aggregate_taxa_by_level(obj_mb, 'g', trim_taxa=True)
+    aggregate_taxa_by_level(obj_mb, 'p', trim_taxa=True)
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_test.csv', index=False)
 
-    # Check data transformation distributions for all microbial features
-    check_transformations(obj_mb)
+    # # Check data transformation distributions for all microbial features
+    # check_transformations(obj_mb)
     
-    # Normalize and scale numeric features
-    method = 'quantile'
-    obj_mb = preprocess_numerical_features(obj_mb, norm_method=method, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
+    # # Normalize and scale numeric features
+    # method = 'quantile'
+    # obj_mb = preprocess_numerical_features(obj_mb, norm_method=method, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
     
-    # Save normalized feature matrix as csv if needed
-    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_{method}_transformed.csv', index=False)
+    # # Save normalized feature matrix as csv if needed
+    # obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_{method}_transformed.csv', index=False)
     
-    # Correlation analysis
-    check_correlations(obj_mb)
+    # # Correlation analysis
+    # check_correlations(obj_mb)
     
-    # Binary classifier training and evaluation
-    train_binary_classifiers(obj_mb)
+    # # Binary classifier training and evaluation
+    # train_binary_classifiers(obj_mb)
     
-    # Multiclass classifier
-    train_multiclass_classifiers(obj_mb)
+    # # Multiclass classifier
+    # train_multiclass_classifiers(obj_mb)
 
 
 if __name__ == "__main__":

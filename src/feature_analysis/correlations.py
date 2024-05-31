@@ -145,14 +145,14 @@ def check_correlations(obj: BioFlowMLClass, method='binary'):
 
     Args:
         obj (BioFlowMLClass): An instance of BioFlowMLClass containing the dataset.
-        method (str, optional): Method for correlation analysis. Supported methods are 'binary' and 'ovr'. Defaults to 'binary'.
+        method (str, optional): Method for correlation analysis. Supported methods are 'binary' and 'multi'. Defaults to 'binary'.
 
     Example:
         ```python
-        check_correlations(obj, 'ovr')
+        check_correlations(obj, 'multi')
         ```
     """
-    methods = ['binary', 'ovr']
+    methods = ['binary', 'multi']
     if method not in methods:
         raise ValueError(f'Supported correlation analysis methods are [{methods}]!')
     
