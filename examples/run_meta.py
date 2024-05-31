@@ -10,6 +10,7 @@ from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
+from src.feature_selection import remove_low_variance_features
 from src.model_training.binary_classification import train_binary_classifiers
 from src.model_training.multiclass_classification import train_multiclass_classifiers
 from src.utils.IOHandler import IOHandler
@@ -41,9 +42,11 @@ def main():
     # Normalize and scale numeric features
     method = 'quantile'
     obj = preprocess_numerical_features(obj, norm_method=method, exclude_features=obj.exclude_features + [obj.label_feature])
-    
     # Save normalized feature matrix as csv if needed
     obj.df.to_csv(f'data/processed/{obj.out_dir_name}_{method}_transformed.csv', index=False)
+    
+    # Remove low varience features
+    obj = remove_low_variance_features(obj, threshold=0.8)
     
     # Correlation analysis
     check_correlations(obj)

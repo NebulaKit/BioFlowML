@@ -45,16 +45,24 @@ def visualize_splits(train_counts, test_counts, output_path, obj:BioFlowMLClass,
         combined_df = pd.concat([combined_df, combined_fold.rename(fold + 1)], axis=1)
 
     # Use a Seaborn color palette
-    palette = sns.color_palette("viridis", n_colors=len(groups)*2)
+    palette1 = sns.color_palette("Paired", n_colors=len(groups)*2)[1::2]
+    palette2 = sns.color_palette("Paired", n_colors=len(groups)*2)[::2]
+    palette = palette1 + palette2
 
     # Plotting
-    ax = combined_df.T.plot(kind='bar', figsize=(10, 5), color=palette, alpha=0.7)
+    ax = combined_df.T.plot(kind='bar', figsize=(10, 5), color=palette, alpha=0.7, width=0.85)
     plt.title(get_translation(obj, 'split_graph.title'))
     plt.xlabel(get_translation(obj, 'split_graph.xlabel'))
     plt.ylabel(get_translation(obj, 'split_graph.ylabel'))
     plt.xticks(rotation=0)
     t = get_translation(obj, 'split_graph.legend_title')
     plt.legend(title=t, bbox_to_anchor=(1.05, 1), loc='upper left')
+    
+    # Make borders and ticks thinner
+    plt.tick_params(axis='both', which='both', width=0.5)
+    for spine in ax.spines.values():
+        spine.set_linewidth(0.5)
+    
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
     plt.close()
@@ -63,7 +71,7 @@ def count_class_samples_by_indices(y, indices):
     unique, counts = np.unique(y[indices], return_counts=True)
     return dict(zip(unique, counts))
 
-def optimize_hyperparameters(X, y, classifier, param_grid, cv, metric='f1_macro'):
+def optimize_hyperparameters(X, y, classifier, param_grid, cv, metric='f1_weighted'):
     start_time = time.time()  # Start time measurement
 
     # Calculate the total number of hyperparameter combinations

@@ -572,7 +572,7 @@ def preprocess_numerical_features(obj: BioFlowMLClass, norm_method='standard', e
     Example:
     ```python
     obj_transformed = get_numerical_feature_pipeline(obj, 
-                                                    norm_method='log2', 
+                                                    norm_method='log10', 
                                                     exclude_features=['feature1', 'feature2'], 
                                                     exclude_binary=False)
     ```
