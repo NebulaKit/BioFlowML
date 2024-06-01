@@ -61,17 +61,16 @@ def main():
     check_transformations(obj_mb)
     
     # Normalize and scale numeric features
-    method = 'quantile'
-    obj_mb = preprocess_numerical_features(obj_mb, norm_method=method, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
+    obj_mb = preprocess_numerical_features(obj_mb, exclude_features=obj_mb.exclude_features + [obj_mb.label_feature])
     
     # Save normalized feature matrix as csv if needed
-    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_{method}_transformed.csv', index=False)
-    
-    # Remove low varience features
-    obj_mb = remove_low_variance_features(obj_mb)
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_normalized.csv', index=False)
     
     # Correlation analysis
     check_correlations(obj_mb)
+    
+    # Remove low varience features
+    obj_mb = remove_low_variance_features(obj_mb)
     
     # Binary classifier training and evaluation
     train_binary_classifiers(obj_mb)

@@ -544,7 +544,7 @@ def prompt_to_select_features_values_to_drop(df):
     
     return features_values_to_drop
    
-def preprocess_numerical_features(obj: BioFlowMLClass, norm_method='standard', exclude_binary=True, exclude_features: list = None):
+def preprocess_numerical_features(obj: BioFlowMLClass, norm_method='quantile', exclude_binary=True, exclude_features: list = None):
     """
     Transform numerical features in BioFlowML class instance df pandas DataFrame property.
 
@@ -552,7 +552,7 @@ def preprocess_numerical_features(obj: BioFlowMLClass, norm_method='standard', e
     - df (pd.DataFrame): Input DataFrame containing the dataset.
     - norm_method (str, optional): Normalization method to be applied. 
                                    Options: 'log10', 'minmax', 'standard', 'robust', 'maxabs', 'power', 'quantile'. 
-                                   Defaults to 'standard'.
+                                   Defaults to 'quantile'.
     - exclude_binary (boolean, optional): Boolean to exclude binary features from transforming when set to True.
                                    Defaults to 'True'.
     - exclude_features (list, optional): List of feature names to exclude from preprocessing. Default is None.
