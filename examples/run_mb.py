@@ -9,6 +9,7 @@ sys.path.append(project_root)
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
+from src.feature_analysis.comparisons import compare_distributions
 from src.preprocessing.microbiome_preprocessing import  merge_with_metadata
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
 from src.feature_selection import aggregate_taxa_by_level, remove_low_variance_features
@@ -68,6 +69,9 @@ def main():
     
     # Correlation analysis
     check_correlations(obj_mb)
+    
+    # Feature distribution comparison
+    compare_distributions(obj_mb)
     
     # Remove low varience features
     obj_mb = remove_low_variance_features(obj_mb)

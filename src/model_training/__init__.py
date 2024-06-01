@@ -299,7 +299,7 @@ def plot_all_classifier_results(metrics: dict, output_dir, obj: BioFlowMLClass, 
     for i, metric in enumerate(metrics):
         with sns.plotting_context(font_scale=1.4):
             sns.boxplot(data=metrics_df[metric], ax=axes[i], orient='h', palette=colors)
-        axes[i].set_title(metric_names[i], fontsize=10)
+        axes[i].set_title(metric_names[i])
 
         # Thinner axis ticks
         axes[i].tick_params(axis='both', which='both', length=3, width=0.5)
@@ -322,8 +322,7 @@ def plot_all_classifier_results(metrics: dict, output_dir, obj: BioFlowMLClass, 
     plt.tight_layout()
     plt.savefig(f'{output_dir}/cv_metrics.png', dpi=300)
     plt.close()
-
-    
+ 
 def save_json(d: dict, out_file_path):
 
     # Extract the directory path
@@ -444,8 +443,6 @@ def plot_feature_importances(feature_importances:dict, feature_names, output_dir
 
     plt.savefig(f'{output_dir}/top_20_features_plot.png', dpi=300)
     plt.close()
-
-
 
 def get_classifiers():
     # Initialize classifiers with a dictionary of parameter grids for grid search

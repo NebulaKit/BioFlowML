@@ -9,6 +9,7 @@ sys.path.append(project_root)
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
+from src.feature_analysis.comparisons import compare_distributions
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
 from src.feature_selection import remove_low_variance_features
 from src.model_training.binary_classification import train_binary_classifiers
@@ -47,8 +48,12 @@ def main():
     # Correlation analysis
     check_correlations(obj)
     
+    # Feature distribution comparison
+    compare_distributions(obj)
+    
     # Remove low varience features
-    obj = remove_low_variance_features(obj, threshold=0.8)
+    obj = remove_low_variance_features(obj)
+    obj.df.to_csv(f'data/processed/{obj.out_dir_name}_processed.csv', index=False)
     
     # Binary classifier training and evaluation
     train_binary_classifiers(obj)
