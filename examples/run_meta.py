@@ -9,9 +9,7 @@ sys.path.append(project_root)
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
-from src.feature_analysis.comparisons import compare_distributions
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
-from src.feature_selection import remove_low_variance_features
 from src.model_training.binary_classification import train_binary_classifiers
 from src.model_training.multiclass_classification import train_multiclass_classifiers
 from src.utils.IOHandler import IOHandler
@@ -20,8 +18,11 @@ import pandas as pd
 
 def main():
     
-    # Promt user to reset logfile if exit
+    # Promt user to reset logfile if exits
     IOHandler.reset_logfile()
+    
+    # Create processed data directory if doesn't exist
+    IOHandler.get_absolute_path('../data/processed', create_dir=True)
     
     # Read metadata feature matrix
     df = pd.read_csv('data/synthetic/metadata.csv')
@@ -47,13 +48,6 @@ def main():
     
     # Correlation analysis
     check_correlations(obj)
-    
-    # Feature distribution comparison
-    compare_distributions(obj)
-    
-    # Remove low varience features
-    obj = remove_low_variance_features(obj)
-    obj.df.to_csv(f'data/processed/{obj.out_dir_name}_processed.csv', index=False)
     
     # Binary classifier training and evaluation
     train_binary_classifiers(obj)

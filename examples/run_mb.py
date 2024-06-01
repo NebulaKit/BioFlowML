@@ -21,7 +21,11 @@ import pandas as pd
 
 def main():
     
+    # Promt user to reset logfile if exits
     IOHandler.reset_logfile()
+    
+    # Create processed data directory if doesn't exist
+    IOHandler.get_absolute_path('../data/processed', create_dir=True)
     
     # Read microbiome feature matrix
     df_mb = pd.read_csv('data/synthetic/microbiome.csv')
@@ -56,7 +60,10 @@ def main():
     # Aggregate species data to specific taxonomic level
     # and trim taxa names
     aggregate_taxa_by_level(obj_mb, 'g', trim_taxa=True)
-    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}_test.csv', index=False)
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}.csv', index=False)
+    
+    # Remove low varience features
+    obj_mb = remove_low_variance_features(obj_mb, threshold=0.1)
 
     # Check data transformation distributions for all microbial features
     check_transformations(obj_mb)
@@ -72,10 +79,7 @@ def main():
     
     # Feature distribution comparison
     compare_distributions(obj_mb)
-    
-    # Remove low varience features
-    obj_mb = remove_low_variance_features(obj_mb)
-    
+
     # Binary classifier training and evaluation
     train_binary_classifiers(obj_mb)
     

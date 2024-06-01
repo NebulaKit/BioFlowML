@@ -45,6 +45,7 @@ docker-compose.yml
 # Ignore project-specific directories
 data/raw
 data/processed/*
+data/synthetic/by_class
 data/FLAML
 data/test
 src/preprocessing/pipelines

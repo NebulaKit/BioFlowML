@@ -11,7 +11,7 @@ import copy
 
 
 @log_errors_and_warnings
-def remove_low_variance_features(obj: BioFlowMLClass, threshold=0.08):
+def remove_low_variance_features(obj: BioFlowMLClass, threshold=0.05):
     """
     Remove low variance features from a BioFlowMLClass object Pandas DataFrame using scikit-learn's VarianceThreshold.
 
