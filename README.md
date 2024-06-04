@@ -36,11 +36,15 @@ pip install -r requirements.txt
 ```
 This will install all the necessary dependencies for the project.
 
-### Running the Project
+### Running Examples
 
-Now that you have set up the virtual environment and installed the dependencies, you're ready to run the project.
-[Add instructions on how to run your project here.]
+The examples can be run using command line from the project root directory (BioFlowML).
 
-### License
+```bash
+# Run microbiome workflow
+python .\examples\run_mb.py
 
-This project is licensed under the [License Name] - see the LICENSE file for details.
+# Run metadata workflow
+python .\examples\run_meta.py
+```
+
