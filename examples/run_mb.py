@@ -44,7 +44,7 @@ def main():
     label_feature = 'subject_group'
     control_label = 'Control'
     obj_meta = BioFlowMLClass(df_meta,
-                              out_dir_name = 'metadata', # same as dataset name
+                              out_dir_name = 'metadata',
                               label_feature = label_feature,
                               exclude_features = [id_column],
                               control_label = control_label,

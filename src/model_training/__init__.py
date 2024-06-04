@@ -320,7 +320,7 @@ def plot_all_classifier_results(metrics: dict, output_dir, obj: BioFlowMLClass, 
 
     # Adjust layout
     plt.tight_layout()
-    plt.savefig(f'{output_dir}/cv_metrics.png', dpi=300)
+    plt.savefig(f'{output_dir}/cv_metrics.png', dpi=250)
     plt.close()
  
 def save_json(d: dict, out_file_path):
@@ -362,8 +362,8 @@ def plot_confusion_matrix(confusion_matrix, classes, output_dir, obj:BioFlowMLCl
     sns.heatmap(confusion_matrix, annot=True, cmap=cmap, xticklabels=classes, yticklabels=classes)
     
     ax = plt.gca()
-    ax.set_xticklabels(ax.get_xticklabels(), fontsize=9)
-    ax.set_yticklabels(ax.get_yticklabels(), fontsize=9)
+    ax.set_xticklabels(ax.get_xticklabels(), fontsize=11)
+    ax.set_yticklabels(ax.get_yticklabels(), fontsize=11)
     
     plt.title(f'{clf_name}: \n{conf_matrix_title}')
     plt.xlabel(tr.translate(f"conf_matrix.xlabel", translations))
@@ -448,8 +448,8 @@ def get_classifiers():
     # Initialize classifiers with a dictionary of parameter grids for grid search
     classifiers = {
         # Linear models
-        "Lasso Logistic Regression": (LogisticRegression(penalty='l1', solver='liblinear'), {'C': [0.01, 0.1, 1, 10]}),
-        "Elastic Net Logistic Regression": (LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, max_iter=1000), {'C': [0.01, 0.1, 1, 10]}),
+        "Lasso Logistic Regression": (LogisticRegression(penalty='l1', solver='liblinear', random_state=11), {'C': [0.01, 0.1, 1, 10]}),
+        "Elastic Net Logistic Regression": (LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, max_iter=1000, random_state=11), {'C': [0.01, 0.1, 1, 10]}),
         # Probabilistic models
         "Naive Bayes": (GaussianNB(), {}),
         # Instance-based models
@@ -457,13 +457,13 @@ def get_classifiers():
         # Margin-based models
         "Support Vector Machines": (SVC(probability=True), {'C': [0.1, 1, 3]}),
         # Tree-based models
-        "Decision Tree": (DecisionTreeClassifier(), {'max_depth': [None, 5, 10, 20, 50, 60], 'criterion': ['gini', 'entropy'], 'splitter': ['best', 'random']}),
+        "Decision Tree": (DecisionTreeClassifier(random_state=11), {'max_depth': [None, 5, 10, 20, 50, 60], 'criterion': ['gini', 'entropy'], 'splitter': ['best', 'random']}),
         # Ensemble bagging models
-        "Random Forest": (RandomForestClassifier(), {'n_estimators': [50, 100, 200, 500]}),
-        "Extra Trees": (ExtraTreesClassifier(), {'n_estimators': [50, 100, 200, 500], 'criterion': ['gini', 'entropy'], 'max_depth': [None, 5, 10, 20, 50, 60]}),
+        "Random Forest": (RandomForestClassifier(random_state=11), {'n_estimators': [50, 100, 200, 500]}),
+        "Extra Trees": (ExtraTreesClassifier(random_state=11), {'n_estimators': [50, 100, 200, 500], 'criterion': ['gini', 'entropy'], 'max_depth': [None, 5, 10, 20, 50, 60]}),
         # Ensemble boosting models
-        "XGBoost": (XGBClassifier(), {'max_depth': [3, 5, 7], 'learning_rate': [0.01, 0.1], 'n_estimators': [50, 100, 300]}),
+        "XGBoost": (XGBClassifier(seed=11), {'max_depth': [3, 5, 7], 'learning_rate': [0.01, 0.1], 'n_estimators': [50, 100, 300]}),
         # Atrificial Neural Network models
-        "Multi-layer Perceptron": (MLPClassifier(), {'hidden_layer_sizes': [(100,), (50, 100, 50)], 'activation': ['relu', 'tanh'], 'alpha': [0.0001, 0.001, 0.01]})
+        "Multi-layer Perceptron": (MLPClassifier(random_state=11), {'hidden_layer_sizes': [(100,), (50, 100, 50)], 'activation': ['relu', 'tanh'], 'alpha': [0.0001, 0.001, 0.01]})
     }
     return classifiers
