@@ -12,14 +12,17 @@ Submodules:
 """
 
 import pandas as pd
-from src.utils.IOHandler import IOHandler
-import src.utils.logger_setup as log
-from src.utils.monitoring import log_errors_and_warnings
+from ...src.utils.IOHandler import IOHandler
+from ...src.utils import logger_setup
+from ...src.utils.monitoring import log_errors_and_warnings
 import os
 import sys
 import io as pyio
 import contextlib
 
+
+def inc(x):
+    return x + 1
 
 
 @log_errors_and_warnings
@@ -45,7 +48,7 @@ def log_descriptive_stats(path: str, delimiter=',', id_field: str = None):
     file_name = path.split("/")[-1].split(".")[0]
     out_dir_name = IOHandler.get_data_file_path(os.path.dirname(path))
     os.makedirs(out_dir_name, exist_ok=True)
-    logger = log.get_logger(f'descriptive_stats_{file_name}', os.path.join(out_dir_name, f'{file_name}.log'))
+    logger = logger_setup.get_logger(f'descriptive_stats_{file_name}', os.path.join(out_dir_name, f'{file_name}.log'))
     
     
     df = pd.read_csv(IOHandler.get_data_file_path(path), sep=delimiter)
