@@ -724,5 +724,8 @@ def encode_and_impute_features(obj: BioFlowMLClass, sort_by=None):
         
     obj_copy.df = pipeline.fit_transform(obj_copy.df)
     
+    # Reset the index
+    obj_copy.df.reset_index(drop=True, inplace=True)
+    
     return obj_copy
     

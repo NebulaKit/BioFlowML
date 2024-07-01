@@ -29,6 +29,7 @@ def main():
     
     # Read microbiome feature matrix
     df_mb = pd.read_csv('data/synthetic/microbiome.csv')
+    # df_mb = pd.read_csv('data/raw/microbiome.csv')
     
     # Create and initialize BioFlowML class instance for the microbiome data
     id_column = 'sample_id'
@@ -39,6 +40,7 @@ def main():
     
     # Read metadata feature matrix
     df_meta = pd.read_csv('data/synthetic/metadata.csv')
+    # df_meta = pd.read_csv('data/raw/metadata.tsv', sep='\t')
     
     # Create and initialize BioFlowML class instance for the metadata (to map label feature to microbiome data)
     label_feature = 'subject_group'

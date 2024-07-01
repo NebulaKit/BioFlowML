@@ -464,6 +464,6 @@ def get_classifiers():
         # Ensemble boosting models
         "XGBoost": (XGBClassifier(seed=11), {'max_depth': [3, 5, 7], 'learning_rate': [0.01, 0.1], 'n_estimators': [50, 100, 300]}),
         # Atrificial Neural Network models
-        "Multi-layer Perceptron": (MLPClassifier(random_state=11), {'hidden_layer_sizes': [(100,), (50, 100, 50)], 'activation': ['relu', 'tanh'], 'alpha': [0.0001, 0.001, 0.01]})
+        "Multi-layer Perceptron": (MLPClassifier(random_state=11), {'hidden_layer_sizes': [(100,), (50, 100, 50)], 'activation': ['relu', 'tanh'], 'alpha': [0.0001, 0.001, 0.01], 'max_iter': [200, 300, 400]})
     }
     return classifiers

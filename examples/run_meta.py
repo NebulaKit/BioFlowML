@@ -25,11 +25,12 @@ def main():
     IOHandler.get_absolute_path('../data/processed', create_dir=True)
     
     # Read metadata feature matrix
-    df = pd.read_csv('data/synthetic/metadata.csv')
+    # df = pd.read_csv('data/synthetic/metadata.csv')
+    df = pd.read_csv('data/raw/metadata.tsv', sep='\t')
     
     # Create and initialize BioFlowML class instance
     obj = BioFlowMLClass(df,                 
-                    out_dir_name = 'metadata',
+                    out_dir_name = 'metadata_original',
                     label_feature = 'subject_group',
                     exclude_features = ['sample_id'],
                     control_label = 'Control',
