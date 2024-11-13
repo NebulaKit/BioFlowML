@@ -1,4 +1,4 @@
-from ...src.utils.logger_setup import get_main_logger
+from src.utils.logger_setup import get_main_logger
 from time import time
 from warnings import catch_warnings, simplefilter
 from traceback import format_exc

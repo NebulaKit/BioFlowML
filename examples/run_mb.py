@@ -29,18 +29,16 @@ def main():
     
     # Read microbiome feature matrix
     df_mb = pd.read_csv('data/synthetic/microbiome.csv')
-    # df_mb = pd.read_csv('data/raw/microbiome.csv')
     
     # Create and initialize BioFlowML class instance for the microbiome data
     id_column = 'sample_id'
     obj_mb = BioFlowMLClass(df_mb,
                             out_dir_name = 'microbiome',
                             exclude_features = [id_column],
-                            lang = 'lv')
+                            lang = 'en')
     
     # Read metadata feature matrix
     df_meta = pd.read_csv('data/synthetic/metadata.csv')
-    # df_meta = pd.read_csv('data/raw/metadata.tsv', sep='\t')
     
     # Create and initialize BioFlowML class instance for the metadata (to map label feature to microbiome data)
     label_feature = 'subject_group'
@@ -50,7 +48,7 @@ def main():
                               label_feature = label_feature,
                               exclude_features = [id_column],
                               control_label = control_label,
-                              lang = 'lv')
+                              lang = 'en')
     
     # Add label feature to the microbiome feature matrix
     obj_mb = merge_with_metadata(obj_mb, obj_meta, [label_feature])
@@ -62,7 +60,7 @@ def main():
     # Aggregate species data to specific taxonomic level
     # and trim taxa names
     aggregate_taxa_by_level(obj_mb, 'g', trim_taxa=True)
-    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}.csv', index=False)
+    obj_mb.df.to_csv(f'data/processed/{obj_mb.out_dir_name}l.csv', index=False)
     
     # Remove low varience features
     obj_mb = remove_low_variance_features(obj_mb, threshold=0.1)

@@ -25,12 +25,8 @@ import os
 
 def visualize_splits(train_counts, test_counts, output_path, obj:BioFlowMLClass, case_name=None):
     
-    groups = translate_label_names(obj)
+    groups = [obj.control_label, case_name] if case_name else obj.get_labels()
     class_prefix = [get_translation(obj, f'cohort_prefix.train'),get_translation(obj, f'cohort_prefix.test')]
-
-    if case_name:
-        control_label = get_translation(obj, f'cohort.{obj.control_label}')
-        groups = [control_label, case_name]
 
     # Convert counts to DataFrames for easier plotting
     train_df = pd.DataFrame(train_counts).fillna(0).astype(int)
@@ -39,8 +35,8 @@ def visualize_splits(train_counts, test_counts, output_path, obj:BioFlowMLClass,
     # Combine train and test counts into a single DataFrame
     combined_df = pd.DataFrame()
     for fold in range(len(train_counts)):
-        train_fold = train_df.iloc[fold].rename(lambda x: f"{class_prefix[0]} ({groups[x].lower()})")
-        test_fold = test_df.iloc[fold].rename(lambda x: f"{class_prefix[1]} ({groups[x].lower()})")
+        train_fold = train_df.iloc[fold].rename(lambda x: f"{class_prefix[0]} ({groups[x]})")
+        test_fold = test_df.iloc[fold].rename(lambda x: f"{class_prefix[1]} ({groups[x]})")
         combined_fold = pd.concat([train_fold, test_fold], axis=0)
         combined_df = pd.concat([combined_df, combined_fold.rename(fold + 1)], axis=1)
 
@@ -121,8 +117,8 @@ def get_translations(obj: BioFlowMLClass, label_list):
     return labels_translated
    
 def cross_validate_model(X, y, cv, classifier, params, output_dir, classifier_name, obj:BioFlowMLClass, case_name=None):
-    groups = translate_label_names(obj)
-    case_name_translated = get_translation(obj, f'cohort.{case_name}') if case_name else None
+    
+    groups = obj.get_labels() if len(y.unique()) > 2 else [obj.control_label, case_name]
     feature_importances_per_fold = []
     conf_matrices = []
     metrics = {'AUROC': [], 'Accuracy': [], 'Precision': [], 'Recall': [], 'F1 Score': []}
@@ -183,23 +179,18 @@ def cross_validate_model(X, y, cv, classifier, params, output_dir, classifier_na
         metrics['F1 Score'].append(round(f1, 4))
         conf_matrices.append(conf_matrix)
 
-    # Calculate average confussion matrix
-    metrics['Confusion matrix'] = (sum(conf_matrices) / len(conf_matrices))
+    # Calculate summary confusion matrix
+    metrics['Confusion matrix'] = np.sum(conf_matrices, axis=0)
+    
     # Plot confussion matrix
-    if len(y.unique()) > 2:
-        plot_confusion_matrix(metrics['Confusion matrix'], groups, output_dir, obj, classifier_name)
-    else:
-        
-        classes = [groups[1], case_name_translated]
-        plot_confusion_matrix(metrics['Confusion matrix'], classes, output_dir, obj, classifier_name)
+    plot_confusion_matrix(metrics['Confusion matrix'], groups, output_dir, obj, classifier_name)
 
     # Visualise sample counts in cv splits
     cv_split_file_name = f'{output_dir}/cv_splits.png'
     if case_name:
-        case_name_out = case_name.lower().replace(' ','_')
-        cv_split_file_name = f'{output_dir}/{case_name_out}_vs_controls_cv_splits.png'
+        cv_split_file_name = f'{output_dir}/{case_name}_vs_controls_cv_splits.png'
         if not os.path.exists(cv_split_file_name):
-            visualize_splits(train_counts, test_counts, cv_split_file_name, obj, case_name_translated)
+            visualize_splits(train_counts, test_counts, cv_split_file_name, obj, case_name)
     else:
         if not os.path.exists(cv_split_file_name):
             visualize_splits(train_counts, test_counts, cv_split_file_name, obj)
@@ -214,18 +205,16 @@ def cross_validate_model(X, y, cv, classifier, params, output_dir, classifier_na
 
 def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_name, obj:BioFlowMLClass):
 
-    groups = translate_label_names(obj)
-    case_name_out = get_translation(obj, f'cohort.{case_name}') if case_name else ''
-    classes_cnt = len(np.unique(y_true_cv))
-    is_multiclass = classes_cnt > 2
+    groups = obj.get_labels() if len(np.unique(y_true_cv)) > 2 else [obj.control_label, case_name]
+
     # Initialize lists to store AUROC values for each class
     auroc_list = []
 
     plt.figure(figsize=(8, 6))
 
-    if is_multiclass:
+    if len(groups) > 2:
         # Plot ROC curves for each class
-        for i, count in enumerate(range(classes_cnt)):
+        for i, count in enumerate(range(len(groups))):
             y_true = (y_true_cv == i).astype(int)
             fpr, tpr, _ = roc_curve(y_true, y_proba_cv[:, i])
             roc_auc = auc(fpr, tpr)
@@ -234,7 +223,7 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     else:
         fpr, tpr, _ = roc_curve(y_true_cv, y_proba_cv)
         roc_auc = auc(fpr, tpr)
-        plt.plot(fpr, tpr, label=f'{case_name_out} (AUC = {roc_auc:.2f})')
+        plt.plot(fpr, tpr, label=f'{case_name} (AUC = {roc_auc:.2f})')
 
     # Plot the diagonal line
     plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
@@ -242,12 +231,11 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     plt.xlabel(get_translation(obj, 'roc_curve.xlabel'))
     plt.ylabel(get_translation(obj, 'roc_curve.ylabel'))
     clf_name = get_translation(obj, f'classifiers.{classifier_name}')
-    control_name = get_translation(obj, f'cohort.{obj.control_label}').lower()
-    case_name_out = case_name_out.lower()
+    control_name = obj.control_label
     title = (
-        f'{clf_name}:\n {get_translation(obj, f"roc_curve.title_multi")}' if is_multiclass else 
+        f'{clf_name}:\n {get_translation(obj, f"roc_curve.title_multi")}' if len(groups) > 2 else 
         f'{clf_name}:\n {get_translation(obj, f"roc_curve.title_binary")} '
-        f'({case_name_out} {get_translation(obj, f"roc_curve.vs")} {control_name})'
+        f'({case_name} {get_translation(obj, f"roc_curve.vs")} {control_name})'
     )
     plt.title(title)
 
@@ -261,10 +249,9 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     plt.legend(loc="lower right")
     clf_name = classifier_name.lower().replace(' ','_')
     plt.tight_layout()
-    case_name = case_name.lower() if case_name else None
     out_dir = f'{output_dir}/roc_curves/'
     os.makedirs(out_dir, exist_ok=True)
-    fig_path = f'{out_dir}/{clf_name}_roc_curves.png' if is_multiclass else f'{out_dir}/{clf_name}_{case_name}_roc_curves.png'
+    fig_path = f'{out_dir}/{clf_name}_roc_curves.png' if len(groups) > 2 else f'{out_dir}/{clf_name}_{case_name}_roc_curves.png'
     plt.savefig(fig_path, dpi=300)
     plt.close()
 
@@ -310,10 +297,8 @@ def plot_all_classifier_results(metrics: dict, output_dir, obj: BioFlowMLClass, 
 
     # Add title
     if case_name:
-        control_name_translated = get_translation(obj, f'cohort.{obj.control_label}').lower()
-        case_name_translated = get_translation(obj, f'cohort.{case_name}').lower()
         title = get_translation(obj, 'evaluation_metrics.title_binary')
-        fig.suptitle(f"{title} ({case_name_translated} {get_translation(obj, 'roc_curve.vs')} {control_name_translated})", fontsize=16)
+        fig.suptitle(f"{title} ({case_name} {get_translation(obj, 'roc_curve.vs')} {obj.control_label})", fontsize=16)
     else:
         title = get_translation(obj, 'evaluation_metrics.title_multi')
         fig.suptitle(title, fontsize=16)
@@ -414,9 +399,8 @@ def plot_feature_importances(feature_importances:dict, feature_names, output_dir
 
     classification_translated = get_translation(obj, 'feature_graph.classification')
     if case_name:
-        case_name_translated = get_translation(obj, f'cohort.{case_name}').lower()
         title = get_translation(obj, 'feature_graph.title_binary')
-        plt.title(f'{title} "{case_name_translated}" {classification_translated}', fontsize=10)
+        plt.title(f'{title} "{case_name}" {classification_translated}', fontsize=10)
     else:
         title = get_translation(obj, 'feature_graph.title_multi')
         plt.title(f'{title} {classification_translated}', fontsize=10)

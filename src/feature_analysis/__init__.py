@@ -11,10 +11,11 @@ Submodules:
 - distributions: Module for analyzing and visualizing data distributions for the original and transformed data.
 """
 
+from src.BioFlowMLClass import BioFlowMLClass
 import pandas as pd
-from ...src.utils.IOHandler import IOHandler
-from ...src.utils import logger_setup
-from ...src.utils.monitoring import log_errors_and_warnings
+from src.utils.IOHandler import IOHandler
+from src.utils import logger_setup
+from src.utils.monitoring import log_errors_and_warnings
 import os
 import sys
 import io as pyio
@@ -26,7 +27,79 @@ def inc(x):
 
 
 @log_errors_and_warnings
-def log_descriptive_stats(path: str, delimiter=',', id_field: str = None):
+def log_descriptive_stats(obj: BioFlowMLClass, id_field: str = None):
+    """
+    Log descriptive statistics, pandas DataFrame info, duplicates, missing values,
+    object type features, and descriptive statistics of a DataFrame.
+    """
+    
+    file_name = path.split("/")[-1].split(".")[0]
+    out_dir_name = IOHandler.get_data_file_path(os.path.dirname(path))
+    os.makedirs(out_dir_name, exist_ok=True)
+    logger = logger_setup.get_logger(f'descriptive_stats_{file_name}', os.path.join(out_dir_name, f'{file_name}.log'))
+    
+    
+    df = pd.read_csv(IOHandler.get_data_file_path(path), sep=delimiter)
+    
+    # Log DataFrame Info
+    with pyio.StringIO() as logger_stdout:
+        # Redirect standard output temporarily
+        # Since info() method in pandas DataFrame prints result directly to the console
+        with contextlib.redirect_stdout(logger_stdout):
+            df.info()
+        # Get the printed output
+        info_output = logger_stdout.getvalue()
+        # Log the serialized output
+        out_str = '\n' + '-' * 25 + 'DataFrame Info' + '-' * 25 + '\n'
+        logger.info(out_str + info_output)
+
+
+    # Check for duplicate rows
+    duplicate_rows = df[df.duplicated()]
+    out_str = '\n' + '-' * 25 + f'{len(duplicate_rows)} ROW DUPLICATES DETECTED!' + '-' * 25 + '\n'
+    # Print duplicate row id's when id_field passed
+    if id_field:
+        if not duplicate_rows.empty:
+            for index, value in duplicate_rows[id_field].items():
+                out_str += f'Index: {index} | Column Name: {id_field} | Value: {value} \n'
+            logger.warning(out_str)
+    # Print duplicate row indices only when id_field not provided
+    else:
+        if not duplicate_rows.empty:
+            indices = duplicate_rows.index.tolist()
+            out_str += f'Duplicate row indices: {indices}\n'
+            logger.warning(out_str)
+        
+        
+    # Check missing values
+    df.isna().sum()
+    na_sum = df.isna().sum()
+    na_sum_present = na_sum[na_sum > 0]
+    if len(na_sum_present) > 0:
+        out_str = '\n' + '-' * 25 + f'MISSING VALUES DETECTED!' + '-' * 25 + '\n'
+        logger.warning(out_str + na_sum_present.to_json(indent=4))
+        
+    
+    # Object type feature logging
+    object_columns = df.select_dtypes(include=['object']).columns
+    if len(object_columns) > 0:
+        out_str = '\n' + '-' * 25 + f'Object type features' + '-' * 25 + '\n'
+        for column in object_columns:
+            unique_values = df[column].unique()
+            out_str += f'{column} ({len(unique_values)}): {unique_values} \n'
+        logger.info(out_str)
+    
+    
+    # Descriptive statistic logging
+    descr_stats_df = df.describe()
+    # Serialize DataFrame to JSON
+    json_str = descr_stats_df.to_json(indent=4)
+    out_str = '\n' + '-' * 25 + f'Descriptive statistics' + '-' * 25 + '\n'
+    logger.info(out_str + json_str)
+
+
+@log_errors_and_warnings
+def log_descriptive_stats_old(path: str, delimiter=',', id_field: str = None):
     """
     Log descriptive statistics, pandas DataFrame info, duplicates, missing values,
     object type features, and descriptive statistics of a DataFrame.

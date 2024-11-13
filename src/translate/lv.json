@@ -33,7 +33,7 @@
     },
     "cohort_prefix":{
         "train": "Treniņa kopa",
-        "test": "Testa kopa"
+        "test": "Validācijas kopa"
     },
     "classifiers":{
         "Lasso Logistic Regression": "Loģistiskā regresija (LASSO)",

@@ -9,6 +9,7 @@ sys.path.append(project_root)
 from src.BioFlowMLClass import BioFlowMLClass
 from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
+from src.feature_analysis.comparisons import compare_distributions
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
 from src.model_training.binary_classification import train_binary_classifiers
 from src.model_training.multiclass_classification import train_multiclass_classifiers
@@ -25,16 +26,15 @@ def main():
     IOHandler.get_absolute_path('../data/processed', create_dir=True)
     
     # Read metadata feature matrix
-    # df = pd.read_csv('data/synthetic/metadata.csv')
-    df = pd.read_csv('data/raw/metadata.tsv', sep='\t')
+    df = pd.read_csv('data/synthetic/metadata.csv')
     
     # Create and initialize BioFlowML class instance
     obj = BioFlowMLClass(df,                 
                     out_dir_name = 'metadata_original',
                     label_feature = 'subject_group',
-                    exclude_features = ['sample_id'],
+                    exclude_features = ['sample_id', 'seq_batch'],
                     control_label = 'Control',
-                    lang = 'lv')
+                    lang = 'en')
     
     # Preprocess non-numerical features and missing values
     obj = encode_and_impute_features(obj, sort_by='sample_id')
@@ -49,6 +49,9 @@ def main():
     
     # Correlation analysis
     check_correlations(obj)
+    
+    # Feature distribution comparison
+    compare_distributions(obj)
     
     # Binary classifier training and evaluation
     train_binary_classifiers(obj)

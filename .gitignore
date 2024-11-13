@@ -31,6 +31,9 @@ htmlcov/
 # Virtual environment
 venv/
 
+# VS code settings
+.vscode
+
 # Ignore Docker-related files
 Dockerfile
 docker-compose.yml
@@ -48,13 +51,16 @@ data/processed/*
 data/synthetic/by_class
 data/FLAML
 data/test
+data/lipidomics.csv
 src/preprocessing/pipelines
 examples/taxonomic_raw_data_preparation.py
 examples/generate_synthetic_data.py
 src/sdv_utils
 results
+results_synthetic
 examples/taxonomic_data_preparation.py
 examples/run_test_data.py
+examples/run_lipidomics.py
 
 # Ignore log files
 *.log

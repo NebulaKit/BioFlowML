@@ -33,7 +33,7 @@
     },
     "cohort_prefix":{
         "train": "Train set",
-        "test": "Test set"
+        "test": "Validation set"
     },
     "classifiers":{
         "Lasso Logistic Regression": "Lasso Logistic Regression",

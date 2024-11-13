@@ -58,14 +58,12 @@ def plot_boxplots(obj: BioFlowMLClass, features, case_data, control_data, case_e
     labels = obj.get_encoded_features()[obj.label_feature]
     control_label = obj.control_label
     case_label = labels[case_encoding]
-    control_label_translated = get_translation(obj, f'cohort.{control_label}').lower()
-    case_label_translated = get_translation(obj, f'cohort.{case_label}').lower()
     
     # Create a DataFrame for plotting
     data = []
     for f, case, control in zip(features, case_data, control_data):
-        data.extend([(f, value, case_label_translated) for value in case])
-        data.extend([(f, value, control_label_translated) for value in control])
+        data.extend([(f, value, case_label) for value in case])
+        data.extend([(f, value, control_label) for value in control])
     df = pd.DataFrame(data, columns=['Feature', 'Data', 'Group'])
 
 
@@ -77,7 +75,7 @@ def plot_boxplots(obj: BioFlowMLClass, features, case_data, control_data, case_e
     # Plot boxplots with Seaborn
     sns.set_context("notebook", font_scale=1)
     plt.figure(figsize=(int(0.7 * len(features)), 8))
-    ax = sns.boxplot(data=df, x='Feature', y='Data', hue='Group', palette={case_label_translated: cases_color, control_label_translated: controls_color}, linewidth=0.5, fliersize=5, width=0.6)
+    ax = sns.boxplot(data=df, x='Feature', y='Data', hue='Group', palette={case_label: cases_color, control_label: controls_color}, linewidth=0.5, fliersize=5, width=0.6)
 
     # Add y-axis tick lines as horizontal lines
     for tick in ax.yaxis.get_majorticklocs():
@@ -97,14 +95,14 @@ def plot_boxplots(obj: BioFlowMLClass, features, case_data, control_data, case_e
                 significance_level = 'ns'
             plt.text(i, -0.06, significance_level, fontsize=12, ha='center', va='bottom', fontweight='bold')
 
-    plt.ylabel('Vērtība')
+    plt.ylabel('Standardized value')
     plt.xlabel('')
-    plt.title(f'Būtiskākās pazīmju sadalījumu atšķirības:\n ({case_label_translated} pret {control_label_translated})\n', fontsize=12)
+    plt.title(f'Univariate Feature Differences Ordered by P-Value\n ({case_label} vs. {control_label})\n', fontsize=12)
     plt.xticks(rotation=45, ha='right')
 
     # Add legend
-    legend_handles = [plt.Line2D([0], [0], marker='s', color='w', markerfacecolor=cases_color, markersize=10, label=case_label_translated),
-                      plt.Line2D([0], [0], marker='s', color='w', markerfacecolor=controls_color, markersize=10, label=control_label_translated)]
+    legend_handles = [plt.Line2D([0], [0], marker='s', color='w', markerfacecolor=cases_color, markersize=10, label=case_label),
+                      plt.Line2D([0], [0], marker='s', color='w', markerfacecolor=controls_color, markersize=10, label=control_label)]
     plt.legend(handles=legend_handles, loc='upper left')
 
     # Frame thickness
@@ -144,6 +142,7 @@ def compare_distributions(obj: BioFlowMLClass, n_features = 15):
         # Filter cases and controls
         df_copy = df_copy[df_copy[target_column].isin([l, control_label_encoded])]
         df_copy = df_copy.reset_index(drop=True)
+        df_copy = df_copy.drop(columns=obj.exclude_features)
 
         # Re-encode the target column: 0 for control, 1 for case
         df_copy[target_column] = df_copy[target_column].apply(lambda x: 0 if x == control_label_encoded else 1)
