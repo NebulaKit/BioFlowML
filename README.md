@@ -1,7 +1,4 @@
 # BioFlowML
-<div align="center">
-  <img src="BioFlowML.png" alt="BioFlowML Logo" height="200">
-</div>
 
 BioFlowML is a machine learning toolkit designed for developing classification workflows and identifying biomarkers from labeled tabular omics data. It is implemented in Python 3.11.5 and interfaces with libraries such as scikit-learn, XGBoost, and seaborn. This allows users to explore and preprocess data, create binary and multiclass classifiers, perform feature selection, optimize hyperparameters, and conduct cross-validation. BioFlowML also offers tools for visualizing ROC curves and confusion matrices, comparing evaluation metrics, and evaluating feature importances across various classifiers.
 
