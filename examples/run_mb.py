@@ -13,7 +13,7 @@ from src.feature_analysis.comparisons import compare_distributions
 from src.preprocessing.microbiome_preprocessing import  merge_with_metadata
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
 from src.feature_selection import aggregate_taxa_by_level, remove_low_variance_features
-from src.model_training.binary_classification import train_binary_classifiers
+from src.model_training.binary_classification import classify_binary
 from src.model_training.multiclass_classification import train_multiclass_classifiers
 from src.utils.IOHandler import IOHandler
 import pandas as pd
@@ -81,7 +81,7 @@ def main():
     compare_distributions(obj_mb)
 
     # Binary classifier training and evaluation
-    train_binary_classifiers(obj_mb)
+    classify_binary(obj_mb)
     
     # Multiclass classifier
     train_multiclass_classifiers(obj_mb)

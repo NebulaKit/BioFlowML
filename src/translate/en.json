@@ -53,7 +53,7 @@
         "ylabel": "True label"
     },
     "split_graph":{
-        "title": "Class Distribution in Training and Test Sets Across Folds",
+        "title": "Class Distribution in Training and Validation Sets Across Folds",
         "xlabel": "Cross-validation Fold",
         "ylabel": "Number of Samples",
         "legend_title": "Dataset"

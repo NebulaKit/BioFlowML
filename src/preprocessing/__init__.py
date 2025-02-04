@@ -332,7 +332,7 @@ class CategoricalImputer(BaseEstimator, TransformerMixin):
         # If label_feature is provided, perform separate imputation for each label
         if self.label_feature is not None:
             for label in X_copy[self.label_feature].unique():
-                label_rows = X_copy[X_copy[self.label_feature] == label].copy()  # Ensure working on a copy
+                label_rows = X_copy[X_copy[self.label_feature] == label].copy()
                 for feature in self.features_to_impute:
                     if feature != self.label_feature:
                         # Custom imputer function to replace 'None' with NaN

@@ -11,7 +11,7 @@ from src.feature_analysis.distributions import check_transformations
 from src.feature_analysis.correlations import check_correlations
 from src.feature_analysis.comparisons import compare_distributions
 from src.preprocessing import encode_and_impute_features, preprocess_numerical_features
-from src.model_training.binary_classification import train_binary_classifiers
+from src.model_training.binary_classification import classify_binary
 from src.model_training.multiclass_classification import train_multiclass_classifiers
 from src.utils.IOHandler import IOHandler
 import pandas as pd
@@ -32,7 +32,7 @@ def main():
     obj = BioFlowMLClass(df,                 
                     out_dir_name = 'metadata_original',
                     label_feature = 'subject_group',
-                    exclude_features = ['sample_id', 'seq_batch'],
+                    exclude_features = ['sample_id'],
                     control_label = 'Control',
                     lang = 'en')
     
@@ -54,7 +54,7 @@ def main():
     compare_distributions(obj)
     
     # Binary classifier training and evaluation
-    train_binary_classifiers(obj)
+    classify_binary(obj)
     
     # Multiclass classifier
     train_multiclass_classifiers(obj)

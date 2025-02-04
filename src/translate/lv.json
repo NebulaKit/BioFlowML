@@ -53,7 +53,7 @@
         "ylabel": "Patiesā klase"
     },
     "split_graph":{
-        "title": "Klašu paraugu sadalījums treniņa un testa datu kopās",
+        "title": "Klašu paraugu sadalījums treniņa un validācijas datu kopās",
         "xlabel": "Šķērsvalidācijas cikls",
         "ylabel": "Paraugu skaits",
         "legend_title": "Datu kopa"

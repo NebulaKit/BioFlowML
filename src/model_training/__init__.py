@@ -10,7 +10,9 @@ from xgboost import XGBClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_curve, auc
+from sklearn.pipeline import Pipeline
 from src.BioFlowMLClass import BioFlowMLClass
+from src.utils.IOHandler import IOHandler
 import src.translate as tr
 import matplotlib
 matplotlib.use('Agg')
@@ -23,9 +25,9 @@ import time
 import os
 
 
-def visualize_splits(train_counts, test_counts, output_path, obj:BioFlowMLClass, case_name=None):
+def visualize_splits(train_counts, test_counts, output_path, obj:BioFlowMLClass, class_0=None, class_1=None):
     
-    groups = [obj.control_label, case_name] if case_name else obj.get_labels()
+    groups = [class_0, class_1] if (class_0 is not None and class_1 is not None) else obj.get_labels()
     class_prefix = [get_translation(obj, f'cohort_prefix.train'),get_translation(obj, f'cohort_prefix.test')]
 
     # Convert counts to DataFrames for easier plotting
@@ -77,7 +79,7 @@ def optimize_hyperparameters(X, y, classifier, param_grid, cv, metric='f1_weight
 
     # Calculate the total number of models trained
     total_models_trained = total_param_combinations * cv.n_splits
-
+    
     # Instantiate GridSearchCV
     grid_search = GridSearchCV(
         estimator=classifier,
@@ -116,12 +118,14 @@ def get_translations(obj: BioFlowMLClass, label_list):
         labels_translated.append(label_translated)
     return labels_translated
    
-def cross_validate_model(X, y, cv, classifier, params, output_dir, classifier_name, obj:BioFlowMLClass, case_name=None):
+def cross_validate_model(X, y, cv, classifier, output_dir, obj:BioFlowMLClass, class_0=None, class_1=None):
     
-    groups = obj.get_labels() if len(y.unique()) > 2 else [obj.control_label, case_name]
+    groups = obj.get_labels() if len(y.unique()) > 2 else [class_0, class_1]
     feature_importances_per_fold = []
     conf_matrices = []
     metrics = {'AUROC': [], 'Accuracy': [], 'Precision': [], 'Recall': [], 'F1 Score': []}
+    clf = classifier[0]
+    classifier_name = classifier[1]
 
     # For vizualizing the sample counts
     train_counts = []
@@ -130,17 +134,19 @@ def cross_validate_model(X, y, cv, classifier, params, output_dir, classifier_na
     # Initialize lists to store true labels and predicted probabilities for each fold
     y_true_list = []
     y_proba_list = []
-
+    
+    out_of_sample_predictions = np.zeros((len(X), len(y.unique())))  # Store OOS predictions
+    
     for train_indices, test_indices in cv.split(X, y):
         train_counts.append(count_class_samples_by_indices(y, train_indices))
         test_counts.append(count_class_samples_by_indices(y, test_indices))
 
-        X_train, X_test = X.loc[train_indices], X.loc[test_indices]
-        y_train, y_test = y.loc[train_indices], y.loc[test_indices]
+        X_train, X_test = X.iloc[train_indices], X.iloc[test_indices]
+        y_train, y_test = y.iloc[train_indices], y.iloc[test_indices]
 
         # Instantiate the estimator with the best parameters from grid search
-        clf = classifier
-        clf = clf.set_params(**params)
+        # clf = classifier
+        # clf = clf.set_params(**params)
 
         # Fit the model
         clf.fit(X_train, y_train)
@@ -149,9 +155,10 @@ def cross_validate_model(X, y, cv, classifier, params, output_dir, classifier_na
         if hasattr(clf, 'feature_importances_'):
             feature_importances_per_fold.append(clf.feature_importances_)
 
-
         # Predict probabilities and calculate AUC
         y_proba = clf.predict_proba(X_test) if len(y.unique()) > 2 else clf.predict_proba(X_test)[:, 1]
+        #out_of_sample_predictions = np.append(out_of_sample_predictions, clf.predict_proba(X_test), axis=0)
+        out_of_sample_predictions[test_indices] = clf.predict_proba(X_test)
         auroc = roc_auc_score(y_test, y_proba, multi_class='ovr') if len(y.unique()) > 2 else roc_auc_score(y_test, y_proba)
 
         # Sellect all y_test labels and predicted probabilities for
@@ -178,34 +185,43 @@ def cross_validate_model(X, y, cv, classifier, params, output_dir, classifier_na
         metrics['Recall'].append(round(recall, 4))
         metrics['F1 Score'].append(round(f1, 4))
         conf_matrices.append(conf_matrix)
-
+    
     # Calculate summary confusion matrix
     metrics['Confusion matrix'] = np.sum(conf_matrices, axis=0)
     
     # Plot confussion matrix
     plot_confusion_matrix(metrics['Confusion matrix'], groups, output_dir, obj, classifier_name)
 
+    clf_file_name = classifier_name.lower().replace(' ','_')
+    
     # Visualise sample counts in cv splits
     cv_split_file_name = f'{output_dir}/cv_splits.png'
-    if case_name:
-        cv_split_file_name = f'{output_dir}/{case_name}_vs_controls_cv_splits.png'
+    if len(y.unique()) == 2:
+        cv_split_file_name = f'{output_dir}/{class_0}_vs_{class_1}_cv_splits.png'
         if not os.path.exists(cv_split_file_name):
-            visualize_splits(train_counts, test_counts, cv_split_file_name, obj, case_name)
+            visualize_splits(train_counts, test_counts, cv_split_file_name, obj, class_0, class_1)
     else:
         if not os.path.exists(cv_split_file_name):
             visualize_splits(train_counts, test_counts, cv_split_file_name, obj)
+            
+            
+    
+    # Save the array as a CSV file
+    oos_p_output_dir = IOHandler.get_absolute_path(f'{output_dir}/oos_predictions/', create_dir=True)
+    oos_p_path = f'{oos_p_output_dir}/{clf_file_name}_oos.csv'
+    np.savetxt(oos_p_path, out_of_sample_predictions, delimiter=',')
 
     # Concatenate true labels and predicted probabilities across all folds
     # And plot roc curves
     y_true_cv = np.concatenate(y_true_list)
     y_proba_cv = np.concatenate(y_proba_list)
-    plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_name, obj)
+    plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, class_0, class_1, obj)
 
     return metrics, feature_importances_per_fold
 
-def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_name, obj:BioFlowMLClass):
+def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, class_0, class_1, obj:BioFlowMLClass):
 
-    groups = obj.get_labels() if len(np.unique(y_true_cv)) > 2 else [obj.control_label, case_name]
+    groups = obj.get_labels() if len(np.unique(y_true_cv)) > 2 else [class_0, class_1]
 
     # Initialize lists to store AUROC values for each class
     auroc_list = []
@@ -223,7 +239,7 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     else:
         fpr, tpr, _ = roc_curve(y_true_cv, y_proba_cv)
         roc_auc = auc(fpr, tpr)
-        plt.plot(fpr, tpr, label=f'{case_name} (AUC = {roc_auc:.2f})')
+        plt.plot(fpr, tpr, label=f'{class_1} (AUC = {roc_auc:.2f})')
 
     # Plot the diagonal line
     plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
@@ -231,11 +247,10 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     plt.xlabel(get_translation(obj, 'roc_curve.xlabel'))
     plt.ylabel(get_translation(obj, 'roc_curve.ylabel'))
     clf_name = get_translation(obj, f'classifiers.{classifier_name}')
-    control_name = obj.control_label
     title = (
         f'{clf_name}:\n {get_translation(obj, f"roc_curve.title_multi")}' if len(groups) > 2 else 
         f'{clf_name}:\n {get_translation(obj, f"roc_curve.title_binary")} '
-        f'({case_name} {get_translation(obj, f"roc_curve.vs")} {control_name})'
+        f'({class_0} {get_translation(obj, f"roc_curve.vs")} {class_1})'
     )
     plt.title(title)
 
@@ -251,7 +266,7 @@ def plot_roc_curves(y_true_cv, y_proba_cv, output_dir, classifier_name, case_nam
     plt.tight_layout()
     out_dir = f'{output_dir}/roc_curves/'
     os.makedirs(out_dir, exist_ok=True)
-    fig_path = f'{out_dir}/{clf_name}_roc_curves.png' if len(groups) > 2 else f'{out_dir}/{clf_name}_{case_name}_roc_curves.png'
+    fig_path = f'{out_dir}/{clf_name}_roc_curves.png' if len(groups) > 2 else f'{out_dir}/{clf_name}_{class_0}_vs_{class_1}_roc_curve.png'
     plt.savefig(fig_path, dpi=300)
     plt.close()
 
@@ -433,21 +448,21 @@ def get_classifiers():
     classifiers = {
         # Linear models
         "Lasso Logistic Regression": (LogisticRegression(penalty='l1', solver='liblinear', random_state=11), {'C': [0.01, 0.1, 1, 10]}),
-        "Elastic Net Logistic Regression": (LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, max_iter=1000, random_state=11), {'C': [0.01, 0.1, 1, 10]}),
+        #"Elastic Net Logistic Regression": (LogisticRegression(penalty='elasticnet', solver='saga', l1_ratio=0.5, max_iter=5000, random_state=11), {'C': [0.01, 0.1, 1, 10]}),
         # Probabilistic models
-        "Naive Bayes": (GaussianNB(), {}),
+        #"Naive Bayes": (GaussianNB(), {}),
         # Instance-based models
-        "K-Nearest Neighbors": (KNeighborsClassifier(), {'n_neighbors': [3, 5, 7, 9], 'weights': ['uniform', 'distance'], 'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']}),
+        #"K-Nearest Neighbors": (KNeighborsClassifier(), {'n_neighbors': [3, 5, 7, 9], 'weights': ['uniform', 'distance'], 'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']}),
         # Margin-based models
-        "Support Vector Machines": (SVC(probability=True), {'C': [0.1, 1, 3]}),
+        #"Support Vector Machines": (SVC(probability=True), {'C': [0.1, 1, 3]}),
         # Tree-based models
         "Decision Tree": (DecisionTreeClassifier(random_state=11), {'max_depth': [None, 5, 10, 20, 50, 60], 'criterion': ['gini', 'entropy'], 'splitter': ['best', 'random']}),
         # Ensemble bagging models
-        "Random Forest": (RandomForestClassifier(random_state=11), {'n_estimators': [50, 100, 200, 500]}),
+        "Random Forest": (RandomForestClassifier(random_state=11), {'n_estimators': [50, 100, 200, 500], 'min_samples_leaf': [2, 3], 'ccp_alpha': [0.0, 1.0, 2.0], 'criterion': ['gini', 'entropy']}),
         "Extra Trees": (ExtraTreesClassifier(random_state=11), {'n_estimators': [50, 100, 200, 500], 'criterion': ['gini', 'entropy'], 'max_depth': [None, 5, 10, 20, 50, 60]}),
         # Ensemble boosting models
         "XGBoost": (XGBClassifier(seed=11), {'max_depth': [3, 5, 7], 'learning_rate': [0.01, 0.1], 'n_estimators': [50, 100, 300]}),
         # Atrificial Neural Network models
-        "Multi-layer Perceptron": (MLPClassifier(random_state=11), {'hidden_layer_sizes': [(100,), (50, 100, 50)], 'activation': ['relu', 'tanh'], 'alpha': [0.0001, 0.001, 0.01], 'max_iter': [200, 300, 400]})
+        #"Multi-layer Perceptron": (MLPClassifier(random_state=11), {'hidden_layer_sizes': [(100,), (50, 100, 50)], 'activation': ['relu', 'tanh'], 'alpha': [0.0001, 0.001, 0.01], 'max_iter': [200, 300, 400]})
     }
     return classifiers
